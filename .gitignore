@@ -1,0 +1,23 @@
+# Data: only the calendar and the small reviewer sample are committed
+data/raw/
+data/interim/
+data/processed/
+data/export/
+data/dev/
+data/external/*
+!data/external/calendar_2023.csv
+!data/external/.gitkeep
+reports/dev/
+
+# Python and tools
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.ruff_cache/
+
+# Credentials
+kaggle.json
+
+# OS
+.DS_Store
