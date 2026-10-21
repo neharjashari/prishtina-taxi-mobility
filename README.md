@@ -23,6 +23,31 @@ rows. `8.csv` and `27.csv` are empty. Columns: `DeviceDateTime`, `Longitute` (si
 The raw files are not in this repository. `reports/tables/raw_inventory.csv` pins them with
 one SHA-256 per file, and `verify-raw` checks a download against it.
 
+### External sources
+
+**Kosovo boundaries.** Who's On First, *Kosovo: WOF Administrative Subdivisions and Human
+Settlements*, Humanitarian Data Exchange, CC BY.
+https://data.humdata.org/dataset/whosonfirst-data-admin-xkx
+We use `whosonfirst-data-admin-xk-country-polygon.shp` for the Kosovo boundary and
+`whosonfirst-data-admin-xk-localadmin-polygon.shp` for the municipalities. Downloaded on
+2026-10-21 (352,936 bytes, SHA-256
+`cab2553fb014e3d6de2742c3b20a05d65b306619bd5c855769e0d13e30530141`). The files are not in
+this repository; get them with:
+
+```bash
+curl -L -o data/external/kosovo_admin/whosonfirst-data-admin-xk-latest.zip https://data.geocode.earth/wof/dist/shapefile/whosonfirst-data-admin-xk-latest.zip
+unzip data/external/kosovo_admin/whosonfirst-data-admin-xk-latest.zip -d data/external/kosovo_admin
+```
+
+**Public holidays.** Ministry of Internal Affairs of the Republic of Kosovo, *Festat zyrtare
+në Republikën e Kosovës për vitin 2023* (official holidays in 2023), issued under Law
+No. 03/L-064 on Official Holidays.
+https://mpb.rks-gov.net/Uploads/EditorFiles/TextHtml/79/Kalendari%20festave%20zyrtare%20_%202023.pdf
+Law: https://gzk.rks-gov.net/ActDocumentDetail.aspx?ActID=2539
+`data/external/calendar_2023.csv` (in this repository) has one row per day from June 1 to
+September 1, 2023. The only official holiday in that period is Kurban Bajram, Wednesday
+June 28, 2023.
+
 ## Setup
 
 Python 3.12.
