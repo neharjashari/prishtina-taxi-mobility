@@ -1,0 +1,5 @@
+vehicle_id,rows,representation,bytes,mb,dtypes
+56,674089,CSV file on disk,54302314,54.3,text
+56,674089,"pandas, read_csv with guessed dtypes",70077138,70.08,"DeviceDateTime: object, Longitute: float64, Latitude: float64, Speed: int64, Direction: int64, Di1: bool, Di2: bool, Di3: bool"
+56,674089,"pandas, typed interim schema",36400938,36.4,"vehicle_id: int16, source_row: int32, ts_utc: datetime64[ns, UTC], ts_local: datetime64[ns, Europe/Skopje], ts_has_seconds: boolean, lon: float64, lat: float64, speed_kmh: float32, heading_deg: float32, di1: boolean, di2: boolean, di3: boolean"
+56,674089,Parquet file on disk (interim),18157892,18.16,"typed interim schema, snappy compression"

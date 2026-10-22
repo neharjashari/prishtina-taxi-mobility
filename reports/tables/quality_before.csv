@@ -1,0 +1,61 @@
+label,dimension,check,column,n,count,share,value,unit
+before cleaning,completeness,missing values,vehicle_id,28590588,0,0.0,,
+before cleaning,completeness,missing values,source_row,28590588,0,0.0,,
+before cleaning,completeness,missing values,ts_utc,28590588,0,0.0,,
+before cleaning,completeness,missing values,ts_local,28590588,0,0.0,,
+before cleaning,completeness,missing values,ts_has_seconds,28590588,0,0.0,,
+before cleaning,completeness,missing values,lon,28590588,0,0.0,,
+before cleaning,completeness,missing values,lat,28590588,0,0.0,,
+before cleaning,completeness,missing values,speed_kmh,28590588,0,0.0,,
+before cleaning,completeness,missing values,heading_deg,28590588,0,0.0,,
+before cleaning,completeness,missing values,di1,28590588,0,0.0,,
+before cleaning,completeness,missing values,di2,28590588,4,0.0,,
+before cleaning,completeness,missing values,di3,28590588,4,0.0,,
+before cleaning,completeness,vehicle-days without any point,ts_local,7636,1117,0.146281,,
+before cleaning,validity,outside the study window,ts_utc,28590588,0,0.0,,
+before cleaning,validity,outside -90 to 90,lat,28590588,0,0.0,,
+before cleaning,validity,outside -180 to 180,lon,28590588,0,0.0,,
+before cleaning,validity,latitude and longitude both 0,"lat, lon",28590588,0,0.0,,
+before cleaning,validity,below 0 or above 200 km/h,speed_kmh,28590588,0,0.0,,
+before cleaning,validity,outside 0 to 360,heading_deg,28590588,0,0.0,,
+before cleaning,uniqueness,exact duplicate of an earlier row (timestamp with seconds),all raw fields,28268982,73676,0.002606,,
+before cleaning,uniqueness,another row has the same vehicle and time (timestamp with seconds),"vehicle_id, ts_utc",28268982,243832,0.008625,,
+before cleaning,uniqueness,exact duplicate of an earlier row (timestamp without seconds),all raw fields,321606,59756,0.185805,,
+before cleaning,uniqueness,another row has the same vehicle and time (timestamp without seconds),"vehicle_id, ts_utc",321606,312472,0.971599,,
+before cleaning,consistency,moving with the ignition off,"speed_kmh, di1",17700373,2502,0.000141,,
+before cleaning,consistency,taximeter on with the ignition off,"di2, di1",10382093,1278,0.000123,,
+before cleaning,consistency,passenger present with the ignition off,"di3, di1",12524743,359165,0.028676,,
+before cleaning,timeliness,interval longer than GAP_S (900 s),interval to next point,28590505,5969,0.000209,,
+before cleaning,timeliness,interval of 0 s (same timestamp),interval to next point,28590505,395695,0.01384,,
+before cleaning,plausibility,outside Kosovo (bounding box),"lat, lon",28590588,20893,0.000731,,
+before cleaning,completeness,empty raw file,file,85,2,0.023529,,
+before cleaning,validity,did not parse at ingestion,ts_utc,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,lon,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,lat,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,speed_kmh,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,heading_deg,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,di1,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,di2,28590588,0,0.0,,
+before cleaning,validity,did not parse at ingestion,di3,28590588,0,0.0,,
+before cleaning,timeliness,"interval to next point, p10",all,28194810,,,4.0,s
+before cleaning,timeliness,"interval to next point, p50",all,28194810,,,10.0,s
+before cleaning,timeliness,"interval to next point, p90",all,28194810,,,10.0,s
+before cleaning,timeliness,"interval to next point, p99",all,28194810,,,351.0,s
+before cleaning,timeliness,"interval to next point, p10",moving,17463238,,,3.0,s
+before cleaning,timeliness,"interval to next point, p50",moving,17463238,,,10.0,s
+before cleaning,timeliness,"interval to next point, p90",moving,17463238,,,10.0,s
+before cleaning,timeliness,"interval to next point, p99",moving,17463238,,,11.0,s
+before cleaning,timeliness,share of observed time (steps up to GAP_S),moving,17463238,,,0.28179234446557305,share
+before cleaning,timeliness,"interval to next point, p10","standing, ignition on",9689170,,,4.0,s
+before cleaning,timeliness,"interval to next point, p50","standing, ignition on",9689170,,,10.0,s
+before cleaning,timeliness,"interval to next point, p90","standing, ignition on",9689170,,,10.0,s
+before cleaning,timeliness,"interval to next point, p99","standing, ignition on",9689170,,,11.0,s
+before cleaning,timeliness,share of observed time (steps up to GAP_S),"standing, ignition on",9689170,,,0.16554126765256777,share
+before cleaning,timeliness,"interval to next point, p10",ignition off,1042402,,,76.0,s
+before cleaning,timeliness,"interval to next point, p50",ignition off,1042402,,,350.0,s
+before cleaning,timeliness,"interval to next point, p90",ignition off,1042402,,,351.0,s
+before cleaning,timeliness,"interval to next point, p99",ignition off,1042402,,,360.0,s
+before cleaning,timeliness,share of observed time (steps up to GAP_S),ignition off,1042402,,,0.5526663878818592,share
+before cleaning,consistency,"reported / implied speed, median",speed_kmh vs implied speed,14077341,,,0.9852568507194519,ratio
+before cleaning,consistency,"absolute difference, median",speed_kmh vs implied speed,14077341,,,4.824967384338379,km/h
+before cleaning,consistency,"absolute difference, p90",speed_kmh vs implied speed,14077341,,,14.680534362792969,km/h

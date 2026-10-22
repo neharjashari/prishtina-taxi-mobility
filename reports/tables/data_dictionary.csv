@@ -1,0 +1,13 @@
+dataset,column,dtype,unit,attribute_type,values,description,source,owner
+interim/points,vehicle_id,int16,,nominal,"ids between 1 and 119, with gaps","Taxi id, from the raw file name. Stored as a number, but only a label.",file name,ingest
+interim/points,source_row,int32,,ordinal,0 to rows - 1,0-based data row in the raw file. With vehicle_id it points back to one raw line.,row position in the raw file,ingest
+interim/points,ts_utc,"datetime64[ns, UTC]",,interval,"June 1 to August 31, 2023","Time of the point in UTC, used for storage, ordering, and time differences. Differences make sense, ratios do not.","DeviceDateTime, read on the device clock (DEVICE_TZ)",ingest
+interim/points,ts_local,"datetime64[ns, Europe/Skopje]",,interval,"June 1 to August 31, 2023, UTC+2","The same instant in Kosovo local time, used for everything calendar-related (date, hour, weekday).",ts_utc,ingest
+interim/points,ts_has_seconds,boolean,,nominal,true / false / NA,"False when the raw timestamp has minutes only: vehicles 1 and 100 on days 1-12 of each month, where the files were re-saved in a spreadsheet. Several points can then share a timestamp. NA when the timestamp did not parse.",format of DeviceDateTime,ingest
+interim/points,lon,float64,degrees (WGS 84),interval,-180 to 180,Longitude.,Longitute (sic),ingest
+interim/points,lat,float64,degrees (WGS 84),interval,-90 to 90,Latitude.,Latitude,ingest
+interim/points,speed_kmh,float32,km/h,ratio,0 or more,"Speed reported by the device. 0 means standing still and 60 km/h is twice 30 km/h, so ratios make sense.",Speed,ingest
+interim/points,heading_deg,float32,degrees,"interval, circular",0 to 360,"Direction of travel. Circular: the mean of 350 and 10 degrees is 0, not 180.",Direction,ingest
+interim/points,di1,boolean,,nominal,true / false / NA,"Digital input 1, binary: the ignition is on (dataset author).",Di1,ingest
+interim/points,di2,boolean,,nominal,true / false / NA,"Digital input 2, binary: the taximeter is on (dataset author, from memory; the data agrees). The signal drops out for a few seconds at a time.",Di2,ingest
+interim/points,di3,boolean,,nominal,true / false / NA,"Digital input 3, binary: a passenger is in the vehicle (dataset author, from memory). Stuck true most of the time in 25 of the 83 vehicles.",Di3,ingest
