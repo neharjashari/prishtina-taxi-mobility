@@ -243,3 +243,81 @@ def clear_log(stage: str | None = None) -> None:
         return
     log = read_log()
     log[log["stage"] != stage].to_csv(path, index=False)
+
+
+# --- Report tables (reports/tables/*.csv) ---------------------------------------------
+
+
+def report_table_path(name: str) -> Path:
+    return config.tables_dir() / f"{name}.csv"
+
+
+def write_report_table(df: pd.DataFrame, name: str) -> Path:
+    """Write a UTF-8 CSV table with a header row to reports/tables (reports/dev/tables in dev)."""
+    path = report_table_path(name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path, index=False, encoding="utf-8")
+    return path
+
+
+def read_report_table(name: str) -> pd.DataFrame:
+    return pd.read_csv(report_table_path(name))
+
+
+# --- Data dictionary ------------------------------------------------------------------
+
+DICTIONARY_COLUMNS = [
+    "dataset",
+    "column",
+    "dtype",
+    "unit",
+    "attribute_type",
+    "values",
+    "description",
+    "source",
+    "owner",
+]
+
+
+def write_dictionary(
+    dataset: str, rows: list[dict], df: pd.DataFrame, owner: str = ""
+) -> None:
+    """Replace one dataset's rows in data_dictionary.csv.
+
+    `dataset` is the path under data/ without the extension ("interim/points"). `rows`
+    has one dict per column of `df` with the keys of DICTIONARY_COLUMNS except dataset
+    and dtype; dtype is read from `df`, so it always matches the data. `owner` (the stage
+    that creates the column) fills rows that do not name one. A column of `df` without a
+    row, or a row without a column, is an error.
+    """
+    described = [r["column"] for r in rows]
+    missing = [c for c in df.columns if c not in described]
+    extra = [c for c in described if c not in df.columns]
+    if missing or extra or len(set(described)) != len(described):
+        raise ValueError(
+            f"Dictionary rows for {dataset} do not match its columns: "
+            f"undocumented {missing}, unknown {extra}"
+        )
+    new = pd.DataFrame(rows).set_index("column").loc[list(df.columns)].reset_index()
+    new["dataset"] = dataset
+    new["dtype"] = [str(df[c].dtype) for c in df.columns]
+    for col in DICTIONARY_COLUMNS:
+        if col not in new.columns:
+            new[col] = ""
+    new = new[DICTIONARY_COLUMNS].fillna("")
+    new.loc[new["owner"] == "", "owner"] = owner
+
+    path = config.data_dictionary_csv()
+    if path.exists():
+        old = read_dictionary()
+        new = pd.concat([old[old["dataset"] != dataset], new], ignore_index=True)
+    new = new.sort_values("dataset", kind="stable")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    new.to_csv(path, index=False)
+
+
+def read_dictionary() -> pd.DataFrame:
+    path = config.data_dictionary_csv()
+    if not path.exists():
+        return pd.DataFrame(columns=DICTIONARY_COLUMNS)
+    return pd.read_csv(path, dtype=str, keep_default_na=False)

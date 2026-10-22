@@ -19,7 +19,8 @@ SEED = 42
 # Kosovo local time. The IANA time zone database has no zone for Kosovo; Europe/Skopje
 # has the same rules: UTC+2 for the whole study window, with no clock change.
 TZ_LOCAL = "Europe/Skopje"
-# Clock of DeviceDateTime. Provisional: not yet confirmed whether it is UTC or local time.
+# Clock of DeviceDateTime. The source does not say whether it is UTC or local time; the
+# team treats it as local time and revisits this if new evidence appears.
 DEVICE_TZ = "Europe/Skopje"
 # Study window on the device clock, end exclusive.
 STUDY_START = pd.Timestamp("2023-06-01 00:00")
@@ -39,6 +40,18 @@ RAW_COLUMNS = [
 ]
 RAW_FILES_EXPECTED = 85
 EMPTY_FILES_EXPECTED = [8, 27]
+# DeviceDateTime formats, tried in this order. Every file uses the first. 1.csv and 100.csv
+# also use the second, without seconds, for days 1-12 of each month (re-saved in a
+# spreadsheet). Both are month-first.
+RAW_TS_FORMAT_SECONDS = "%m/%d/%Y %I:%M:%S %p"
+RAW_TS_FORMAT_MINUTES = "%m/%d/%Y %H:%M"
+# Boolean text in Di1-Di3: True/False in most files, TRUE/FALSE in 1.csv and 100.csv.
+# Anything else, including an empty field, becomes NA.
+RAW_BOOL_VALUES = {"True": True, "False": False, "TRUE": True, "FALSE": False}
+# Bounding box of the Who's On First Kosovo country polygon (lon_min, lat_min, lon_max,
+# lat_max), rounded to 4 decimals. Used by the quality profile before cleaning; the
+# cleaning stage tests the polygon itself.
+KOSOVO_BBOX = (20.0143, 41.8576, 21.7900, 43.2680)
 # Files below this size are reported by verify-raw (18, 36, 64 and 66 at download time).
 SMALL_FILE_BYTES = 2_000_000
 # One near the median (1), one large (56), and one small (66) vehicle. Vehicle 1 also
@@ -61,6 +74,10 @@ GAP_S = 900
 IMPUTE_MAX_DT_S = 60
 IMPUTE_METHOD = "implied_speed"
 V_MOVE_KMH = 5
+# Steps where an implied speed (distance / time) is meaningful enough to compare with the
+# reported speed: 5-60 s long and at least 10 m, so GPS jitter on short steps stays out.
+SPEED_CHECK_DT_S = (5, 60)
+SPEED_CHECK_MIN_DIST_M = 10
 GRID_SIZE_M = 500
 CRS_METRIC = "EPSG:32634"
 
