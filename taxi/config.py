@@ -70,6 +70,10 @@ SPEED_MAX_KMH = 200
 JUMP_KMH = 250
 JUMP_MIN_DIST_M = 100
 MAX_DROP_SHARE = 0.01
+# Vehicles whose exact duplicates (R08) are above MAX_DROP_SHARE and were reviewed by the
+# team: retransmitted records, so R08 may drop them. Every other vehicle and rule keeps
+# the guard.
+R08_REVIEWED_VEHICLES = [3, 5, 17, 30]
 GAP_S = 900
 IMPUTE_MAX_DT_S = 60
 IMPUTE_METHOD = "implied_speed"
@@ -98,7 +102,7 @@ TOD_LABELS = ["night", "morning", "midday", "afternoon", "evening"]
 NIGHT_HOURS = (0, 6)
 COMPASS_LABELS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 TRIP_RULES = ("stop_gap", "di2")
-TRIP_RULE = "stop_gap"
+TRIP_RULE = "di2"
 DI2_BRIDGE_S = 60
 DI2_BRIDGE_COMPARE_S = [0, 10, 20, 30, 45, 60, 90, 120, 180, 300]
 TRIP_SHORT_POINTS = 3

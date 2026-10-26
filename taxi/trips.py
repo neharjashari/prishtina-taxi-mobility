@@ -551,10 +551,13 @@ def process_vehicle(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]
                 df["date_local"].unique(), fill_value=0
             ).to_numpy(),
         }
+        stats["rules"][rule]["spans"] = (first, last)
         if rule == config.TRIP_RULE:
             chosen = (trips, first, last)
 
+    stats["has_di2"] = bool(a["di2"].any())
     stats["minute_control"] = minute_bridge_control(a, config.DI2_BRIDGE_S)
+    stats["overlap"] = rule_overlap(a, stats["rules"])
     trips, first, last = chosen
     member = point_trip_index(len(df), first, last)
     trip_ids = np.full(len(df), None, dtype=object)
@@ -618,6 +621,27 @@ def minute_bridge_table(stats: list[dict]) -> pd.DataFrame:
     out["share_agree_at_most"] = (out["agree_at_most"] / n).round(4)
     out.insert(1, "bridge_s", config.DI2_BRIDGE_S)
     return out
+
+
+def rule_overlap(a: dict[str, np.ndarray], rules: dict) -> dict[str, np.ndarray]:
+    """How the two rules relate on one vehicle."""
+    sg_first, sg_last = rules["stop_gap"]["spans"]
+    d2_first, _ = rules["di2"]["spans"]
+    pos = np.searchsorted(sg_first, d2_first, side="right") - 1
+    inside = (pos >= 0) & (d2_first < sg_last[np.maximum(pos, 0)])
+    rides = np.bincount(pos[inside], minlength=len(sg_first))
+    if not a["di2"].any():
+        return {
+            "rides_per_stop_gap_trip": rides,
+            "metered_share": np.full(len(sg_first), np.nan),
+        }
+    on, _ = bridge_off_runs(
+        a["di2"], a["gap"], a["t_s"], config.DI2_BRIDGE_S, a["exact"]
+    )
+    dt_on = np.concatenate([[0.0], np.cumsum(np.where(on & ~a["gap"], a["dt"], 0.0))])
+    total = a["t_s"][sg_last] - a["t_s"][sg_first]
+    metered = (dt_on[sg_last] - dt_on[sg_first]) / np.where(total > 0, total, np.nan)
+    return {"rides_per_stop_gap_trip": rides, "metered_share": metered}
 
 
 def bridge_sensitivity(a: dict[str, np.ndarray]) -> dict[float, dict]:
@@ -762,13 +786,29 @@ def _summary_row(label: str, rule: str, group: list[dict]) -> dict:
         if len(trips)
         else np.nan,
         "straightness_median": round(float(trips["straightness"].median()), 3)
-        if len(trips)
+        if trips["straightness"].notna().any()
         else np.nan,
         "zero_duration_runs": int(
             sum(g["rules"][rule]["zero_duration_runs"] for g in group)
         ),
     }
+    row["vehicles_without_di2"] = sum(1 for g in group if not g["has_di2"])
     if rule == "stop_gap":
+        rides = np.concatenate([g["overlap"]["rides_per_stop_gap_trip"] for g in group])
+        metered = np.concatenate([g["overlap"]["metered_share"] for g in group])
+        metered = metered[np.isfinite(metered)]
+        row["di2_rides_per_trip_mean"] = (
+            round(float(rides.mean()), 2) if len(rides) else np.nan
+        )
+        row["share_trips_with_2plus_rides"] = (
+            round(float((rides >= 2).mean()), 4) if len(rides) else np.nan
+        )
+        row["metered_time_share_median"] = (
+            round(float(np.median(metered)), 3) if len(metered) else np.nan
+        )
+        row["share_trips_unmetered"] = (
+            round(float((metered == 0).mean()), 4) if len(metered) else np.nan
+        )
         durations = np.concatenate([g["stop_durations"] for g in group])
         row["stops"] = int(sum(g["n_stops"] for g in group))
         row["stop_min_median"] = (
