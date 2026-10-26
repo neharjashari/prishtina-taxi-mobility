@@ -12,6 +12,10 @@ its columns. Methods:
 The evaluation compares each sample with the full data on what Phases II and III use most:
 the speed distribution (Kolmogorov-Smirnov statistic), the share of points per hour of
 day, the moving share, and the vehicles covered.
+
+The reviewer sample (data/sample/points_sample.csv) is public. Night-time rows with the
+ignition off show where a taxi parks overnight, so that file withholds their position
+(rule S01); the samples under data/processed/samples/ keep every value.
 """
 
 from collections.abc import Callable, Iterator
@@ -24,6 +28,8 @@ from taxi import PipelineError, config, figures, io
 
 SAMPLE_CSV_MAX_BYTES = 5_000_000
 SRS_FRACTION = 0.01
+# Withheld (NA) in the reviewer sample on night-time rows with the ignition off (rule S01).
+WITHHELD_COLUMNS = ["lat", "lon", "cell_id"]
 
 
 def _vehicles(stage: io.Stage) -> list[int]:
@@ -225,12 +231,44 @@ def build(stage: io.Stage, dictionary_dataset: str) -> pd.DataFrame:
         raise PipelineError(
             f"No data dictionary rows for {dictionary_dataset}; its stage writes them."
         )
-    io.write_dictionary(
-        "sample/points_sample",
-        described.drop(columns=["dataset", "dtype"]).to_dict("records"),
-        reviewer,
+    rows = described.drop(columns=["dataset", "dtype"]).to_dict("records")
+    for row in rows:
+        if row["column"] in WITHHELD_COLUMNS:
+            row["description"] += " NA in this file when coords_withheld is true."
+    start, end = config.NIGHT_HOURS
+    rows.append(
+        {
+            "column": "coords_withheld",
+            "unit": "",
+            "attribute_type": "nominal",
+            "values": "true / false",
+            "description": (
+                f"lat, lon, and cell_id are withheld (NA): the row is at night ({start:02d}:00 to "
+                f"{end:02d}:00 local) with the ignition off, so it would show where the taxi "
+                "parks overnight (rule S01). Only in this public file."
+            ),
+            "source": "hour, di1",
+            "owner": "sample",
+        }
     )
+    io.write_dictionary("sample/points_sample", rows, reviewer)
     return table
+
+
+def withhold_overnight(df: pd.DataFrame) -> pd.DataFrame:
+    """A copy of df with lat, lon, and cell_id set to NA on night-time rows with the ignition off.
+
+    Adds coords_withheld. A row with an unknown ignition (di1 NA) keeps its position.
+    """
+    start, end = config.NIGHT_HOURS
+    night = ((df["hour"] >= start) & (df["hour"] < end)).to_numpy(bool)
+    parked = df["di1"].eq(False).fillna(False).to_numpy(bool)
+    withheld = night & parked
+    out = df.copy()
+    out.loc[withheld, ["lat", "lon"]] = np.nan
+    out.loc[withheld, "cell_id"] = pd.NA
+    out["coords_withheld"] = withheld
+    return out
 
 
 def _reviewer_sample(stage: io.Stage, total_rows: int) -> pd.DataFrame:
@@ -244,12 +282,23 @@ def _reviewer_sample(stage: io.Stage, total_rows: int) -> pd.DataFrame:
     target_rows = 0.9 * SAMPLE_CSV_MAX_BYTES / bytes_per_row
     frac = max(1e-6, (target_rows - strata) / total_rows)
     for _ in range(6):
-        sample = stratified(frac, stage)
+        sample = withhold_overnight(stratified(frac, stage))
         sample.to_csv(path, index=False, encoding="utf-8")
         size = path.stat().st_size
         if size < SAMPLE_CSV_MAX_BYTES:
+            withheld = int(sample["coords_withheld"].sum())
+            io.log_step(
+                "sample",
+                "S01",
+                "set_na",
+                None,
+                len(sample),
+                withheld,
+                "points_sample.csv: lat, lon, cell_id withheld on night-time rows with the ignition off",
+            )
             print(
-                f"points_sample.csv: {len(sample):,} rows, {size:,} bytes, fraction {frac:.6f}"
+                f"points_sample.csv: {len(sample):,} rows, {size:,} bytes, fraction {frac:.6f}, "
+                f"position withheld on {withheld:,} rows"
             )
             return sample
         frac *= 0.8 * SAMPLE_CSV_MAX_BYTES / size
