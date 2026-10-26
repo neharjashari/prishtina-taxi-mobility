@@ -86,13 +86,20 @@ CRS_METRIC = "EPSG:32634"
 STOP_RADIUS_M = 100
 STOP_MIN_S = 300
 # (lat, lon), to be set with a cited source.
-CITY_CENTER: tuple[float, float] | None = None
+CITY_CENTER: tuple[float, float] | None = (42.67272, 21.16688)
+CITY_CENTER_SOURCE = (
+    "GeoNames feature 786714 (Pristina), CC BY 4.0, https://www.geonames.org/786714"
+)
 # Bins and buckets are left-closed, [a, b): use pd.cut(..., right=False).
 SPEED_BINS_KMH = [0, 5, 20, 50, 80, float("inf")]
 SPEED_BIN_LABELS = ["stopped", "slow", "urban", "fast", "highway"]
 TOD_BUCKETS = [0, 6, 10, 15, 19, 24]
 TOD_LABELS = ["night", "morning", "midday", "afternoon", "evening"]
 NIGHT_HOURS = (0, 6)
+COMPASS_LABELS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+DISTANCE_BINS_M = [0, 2_000, 5_000, 10_000, 20_000, float("inf")]
+DISTANCE_BIN_LABELS = ["under 2 km", "2-5 km", "5-10 km", "10-20 km", "20 km or more"]
+N_COMPARE_BINS = 5
 
 # --- Paths ----------------------------------------------------------------------------
 
