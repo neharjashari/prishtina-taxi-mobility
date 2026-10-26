@@ -1,0 +1,4 @@
+method,n_hidden,n_with_estimate,n_compared,mae_kmh,median_ae_kmh,p90_ae_kmh,chosen
+implied_speed,1371646,1353414,1221897,4.891,2.858,12.579,True
+interpolate,1371646,1238396,1221897,5.187,3.286,13.5,False
+previous,1371646,1303283,1221897,6.938,4.0,19.0,False

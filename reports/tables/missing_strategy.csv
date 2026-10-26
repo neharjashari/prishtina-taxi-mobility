@@ -1,0 +1,12 @@
+kind,column,n,count,share,mechanism,rule,strategy,why
+value,ts_utc,28590588,0,0.0,none in the data,M1,drop (R01),a time cannot be guessed reliably
+value,lon,28590588,0,0.0,none in the data,M1,drop (R03),a position cannot be guessed reliably
+value,lat,28590588,0,0.0,none in the data,M1,drop (R03),a position cannot be guessed reliably
+value,speed_kmh,28590588,0,0.0,none in the data,M2,"fill with IMPUTE_METHOD when both steps are short, else leave NA",between two short steps the speed changes little
+value,heading_deg,28590588,0,0.0,none in the data,-,leave NA,not needed for durations or distances
+value,di1,28590588,0,0.0,none in the data,M3,leave NA,an on/off state cannot be inferred from neighbours
+value,di2,28590588,4,0.0,parse failure or empty field,M3,leave NA,an on/off state cannot be inferred from neighbours
+value,di3,28590588,4,0.0,parse failure or empty field,M3,leave NA,an on/off state cannot be inferred from neighbours
+file,all,85,2,0.023529,"raw files of vehicles [8, 27] are empty (0 bytes); the source gives no reason",M5,"exclude, list in the inventory and the report",there is nothing to repair
+gap,dt_s,28516829,5969,0.000209,"gaps per 10,000 steps: 55.81 after the ignition is off, 0.04 after it is on, so not MCAR; length median 58 min, p90 58 min (missing_gaps.csv)",M4,"set gap_after, leave the step out of durations and distances",positions between two distant points are unknown; no points are created
+vehicle-day,date_local,7636,1117,0.146281,"taxi not in service that day (argued from the devices, not provable)",M6,no row in vehicle_day; coverage shown in F2,a day without points has no measurements to aggregate
