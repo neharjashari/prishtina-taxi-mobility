@@ -1,0 +1,6 @@
+source,join_key,time_base,unit,n,matched,unmatched,why_unmatched
+"vehicle files (Kaggle, 85 CSV)",file name -> vehicle_id,"DeviceDateTime on the device clock (DEVICE_TZ), stored as ts_utc",files,85,83,2,"empty files (0 bytes), excluded by M5; every vehicle_id is unique and every file with data has the same header; 83 vehicles in this run"
+"Kosovo boundary (WOF country polygon, HDX)","lon, lat inside the polygon",none,points,28516912,28416667,100245,"points outside Kosovo, kept with in_kosovo = false (R05)"
+"municipalities (WOF localadmin polygons, HDX)","lon, lat inside the polygon",none,points,28516912,28416540,100372,"100,245 outside Kosovo; 127 inside the country polygon but in no municipality polygon"
+"grid (500 m cells, EPSG:32634)","lon, lat projected to metres",none,points,28516912,28516912,0,every point with coordinates gets a cell
+calendar_2023.csv (Ministry of Internal Affairs),date_local,local date from ts_local (Europe/Skopje),points,28516912,28516912,0,"the stage stops if a date is missing; 5,937,268 points on weekends, 171,533 on the holiday (June 28)"
