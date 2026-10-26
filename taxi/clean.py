@@ -5,16 +5,23 @@ Cdo rregull shenohet ne cleaning_log.csv.
 
 Rreshtat pa sekonda (taksite 1 dhe 100) nuk fshihen si duplikate, dhe hapat qe i prekin
 nuk kane shpejtesi te llogaritur.
+
+Figurat: F4 harta e pikave, F5 shpejtesia e raportuar kundrejt asaj te llogaritur
+(kontrolli i njesise km/h), F6 sa rreshta mbeten pas cdo rregulli.
 """
 
+import matplotlib.colors as mcolors
 import numpy as np
 import pandas as pd
 
-from taxi import PipelineError, config, geo, integrate, io, missing
+from taxi import PipelineError, config, figures, geo, integrate, io, missing
 from taxi.ingest import INTERIM_DICTIONARY
 
 STAGE = "clean"
 CLEAN_DATASET = "processed/points_clean"
+DROP_RULES = ["R01", "R02", "R03", "R04", "R08"]
+MAP_LON = np.arange(19.6, 22.2001, 0.01)
+MAP_LAT = np.arange(41.45, 43.6701, 0.01)
 RAW_FIELDS = [
     "ts_utc",
     "lon",
@@ -76,14 +83,6 @@ CLEAN_DICTIONARY = [
         "description": "Another kept row of the vehicle has the same ts_utc with different values "
         "(R09). Mostly the timestamps without seconds of vehicles 1 and 100.",
         "source": "rule R09",
-    },
-    {
-        "column": "flag_jump",
-        "attribute_type": "nominal",
-        "values": "true / false",
-        "description": "The step's implied speed is above JUMP_KMH (250 km/h) over more than "
-        "JUMP_MIN_DIST_M (100 m): a possible GPS jump, kept for Phase II (R10).",
-        "source": "rule R10",
     },
     {
         "column": "in_kosovo",
@@ -150,17 +149,34 @@ def run(dev: bool) -> None:
     for stale in sorted(set(io.vehicle_ids("clean")) - set(ids)):
         io.points_path("clean", stale).unlink()
 
+    rng = np.random.default_rng(config.SEED)
+    pairs, summaries = [], []
+    joined = 0
+    inside = np.zeros((len(MAP_LON) - 1, len(MAP_LAT) - 1))
+    outside = np.zeros_like(inside)
     for v in ids:
-        df = clean_vehicle(v)
+        df, raw_missing, raw_rows = clean_vehicle(v)
         io.write_points(df, "clean")
+        summaries.append(missing.vehicle_summary(df, raw_missing, raw_rows, rng))
+        pairs.append(speed_pairs(df))
+        joined = joined + integrate.join_counts(df)
+        inside += map_counts(df[df["in_kosovo"]])
+        outside += map_counts(df[~df["in_kosovo"]])
 
     rows = [{**r, "owner": "ingest"} for r in INTERIM_DICTIONARY] + CLEAN_DICTIONARY
     io.write_dictionary(CLEAN_DATASET, rows, df, owner=STAGE)
 
+    missing.write_tables(summaries)
+    integrate.write_summary(joined, len(ids))
+    figure_points_map(inside, outside)
+    figure_speed_check(pd.concat(pairs, ignore_index=True))
+    figure_funnel()
 
-def clean_vehicle(vehicle_id: int) -> pd.DataFrame:
+
+def clean_vehicle(vehicle_id: int) -> tuple[pd.DataFrame, pd.Series, int]:
     df = io.read_points("interim", [vehicle_id]).sort_values("source_row")
     raw_rows = len(df)
+    raw_missing = df[list(missing.COLUMN_RULES)].isna().sum()
     dropped = 0
 
     def log(rule_id: str, action: str, n: int, note: str) -> None:
@@ -169,8 +185,12 @@ def clean_vehicle(vehicle_id: int) -> pd.DataFrame:
     def drop(rule_id: str, mask: pd.Series, note: str) -> None:
         nonlocal df, dropped
         n = int(mask.sum())
+        over = n > config.MAX_DROP_SHARE * raw_rows
+        reviewed = rule_id == "R08" and vehicle_id in config.R08_REVIEWED_VEHICLES
+        if over and reviewed:
+            note += "; above MAX_DROP_SHARE, rows reviewed (T2b)"
         log(rule_id, "drop", n, note)
-        if n > config.MAX_DROP_SHARE * raw_rows:
+        if over and not reviewed:
             raise PipelineError(
                 f"Vehicle {vehicle_id}: {rule_id} drops {n:,} of {raw_rows:,} rows "
                 f"({n / raw_rows:.2%}), above MAX_DROP_SHARE ({config.MAX_DROP_SHARE:.0%}). "
@@ -257,24 +277,13 @@ def clean_vehicle(vehicle_id: int) -> pd.DataFrame:
         (~df["in_kosovo"]).sum(),
         "outside the Kosovo boundary: kept, in_kosovo = false",
     )
-    df["flag_jump"] = (df["implied_speed_kmh"] > config.JUMP_KMH) & (
-        df["dist_m"] > config.JUMP_MIN_DIST_M
-    )
-    log(
-        "R10",
-        "flag",
-        df["flag_jump"].sum(),
-        f"implied speed > JUMP_KMH ({config.JUMP_KMH}) over > JUMP_MIN_DIST_M "
-        f"({config.JUMP_MIN_DIST_M} m): kept for Phase II",
-    )
-
     integrate.add_point_context(df)
     if len(df) + dropped != raw_rows:
         raise PipelineError(
             f"Vehicle {vehicle_id}: {len(df):,} kept + {dropped:,} dropped != {raw_rows:,} rows in"
         )
     columns = [r["column"] for r in INTERIM_DICTIONARY + CLEAN_DICTIONARY]
-    return df[columns]
+    return df[columns], raw_missing, raw_rows
 
 
 def add_steps(df: pd.DataFrame) -> None:
@@ -288,3 +297,125 @@ def add_steps(df: pd.DataFrame) -> None:
     implied = df["dist_m"] / dt.where(dt > 0) * 3.6
     df["implied_speed_kmh"] = implied.mask(no_seconds).astype("float32")
     df["gap_after"] = dt > config.GAP_S
+
+
+def speed_pairs(df: pd.DataFrame) -> pd.DataFrame:
+    lo, hi = config.SPEED_CHECK_DT_S
+    usable = (
+        df["dt_s"].between(lo, hi)
+        & (df["dist_m"] >= config.SPEED_CHECK_MIN_DIST_M)
+        & (df["speed_kmh"] >= config.V_MOVE_KMH)
+        & ~df["speed_imputed"]
+        & df["implied_speed_kmh"].notna()
+    )
+    return df.loc[usable, ["speed_kmh", "implied_speed_kmh"]]
+
+
+def map_counts(df: pd.DataFrame) -> np.ndarray:
+    return np.histogram2d(df["lon"], df["lat"], bins=[MAP_LON, MAP_LAT])[0]
+
+
+def figure_points_map(inside: np.ndarray, outside: np.ndarray) -> None:
+    log = io.read_log().query("stage == @STAGE")
+    n_r04 = int(log.loc[log["rule_id"] == "R04", "rows_affected"].sum())
+    n_outside = int(log.loc[log["rule_id"] == "R05", "rows_affected"].sum())
+    n_off_map = n_outside - int(outside.sum())
+
+    fig, ax = figures.subplots(7, 6.2)
+    blues = mcolors.ListedColormap(figures.SEQUENTIAL_BLUE)
+    mesh = ax.pcolormesh(
+        MAP_LON,
+        MAP_LAT,
+        np.ma.masked_equal(inside, 0).T,
+        cmap=blues,
+        norm=mcolors.LogNorm(),
+    )
+    ax.pcolormesh(
+        MAP_LON,
+        MAP_LAT,
+        np.ma.masked_equal(outside, 0).T,
+        cmap=mcolors.ListedColormap([figures.SERIES[1]]),
+    )
+    boundary = integrate.kosovo_boundary()
+    for part in getattr(boundary, "geoms", [boundary]):
+        x, y = part.exterior.xy
+        ax.plot(x, y, color=figures.INK_SECONDARY, linewidth=0.8)
+    ax.set_aspect(1 / np.cos(np.radians(42.6)))
+    ax.set_xlabel("Longitude (degrees)")
+    ax.set_ylabel("Latitude (degrees)")
+    ax.set_title("F4. Points per cell of 0.01 degrees, after the drop rules")
+    fig.colorbar(mesh, ax=ax, shrink=0.7, label="Points per cell (log scale)")
+    ax.text(
+        0.01,
+        0.01,
+        f"Orange: outside Kosovo, kept with in_kosovo = false ({n_outside:,} points, "
+        f"{n_off_map:,} beyond this map)\n"
+        f"R04: {n_r04:,} points dropped for impossible coordinates, not shown",
+        transform=ax.transAxes,
+        fontsize=8,
+        color=figures.INK_SECONDARY,
+        bbox={"facecolor": figures.SURFACE, "edgecolor": figures.AXIS, "pad": 4},
+    )
+    figures.save_figure(fig, "f04_raw_points_map")
+
+
+def figure_speed_check(pairs: pd.DataFrame) -> None:
+    ratio = (pairs["implied_speed_kmh"] / pairs["speed_kmh"]).median()
+    print(
+        f"Speed unit check: {len(pairs):,} steps, median implied / reported speed {ratio:.3f}"
+    )
+    top = 150
+    fig, ax = figures.subplots(6.5, 5.5)
+    hb = ax.hexbin(
+        pairs["speed_kmh"],
+        pairs["implied_speed_kmh"],
+        gridsize=60,
+        extent=(0, top, 0, top),
+        mincnt=1,
+        bins="log",
+        cmap=mcolors.ListedColormap(figures.SEQUENTIAL_BLUE),
+    )
+    ax.plot(
+        [0, top], [0, top], color=figures.INK, linewidth=1, label="implied = reported"
+    )
+    ax.plot(
+        [0, top / 3.6],
+        [0, top],
+        color=figures.SERIES[1],
+        linewidth=1,
+        linestyle="--",
+        label="implied = 3.6 x reported (speed in m/s)",
+    )
+    ax.set_xlim(0, top)
+    ax.set_ylim(0, top)
+    ax.set_xlabel("Reported speed (km/h)")
+    ax.set_ylabel("Implied speed, distance / time (km/h)")
+    ax.set_title(
+        f"F5. Reported vs implied speed, median ratio {ratio:.2f} ({len(pairs):,} steps)"
+    )
+    ax.legend(loc="upper left")
+    fig.colorbar(hb, ax=ax, label="Steps per hexagon (log scale)")
+    figures.save_figure(fig, "f05_reported_vs_implied_speed")
+
+
+def figure_funnel() -> None:
+    log = io.read_log().query("stage == @STAGE")
+    dropped = log.groupby("rule_id")["rows_affected"].sum()
+    remaining = [int(log.loc[log["rule_id"] == "R01", "rows_in"].sum())]
+    for rule in DROP_RULES:
+        remaining.append(remaining[-1] - int(dropped.get(rule, 0)))
+    labels = ["Raw rows"] + [f"after {rule}" for rule in DROP_RULES]
+
+    fig, ax = figures.subplots(7, 3.5)
+    y = np.arange(len(labels))[::-1]
+    ax.barh(y, remaining, color=figures.SERIES[0], height=0.6)
+    for yi, rule, n in zip(y, [None, *DROP_RULES], remaining):
+        text = f"{n:,}" if rule is None else f"{n:,} (-{int(dropped.get(rule, 0)):,})"
+        ax.text(n, yi, f" {text}", va="center", fontsize=8, color=figures.INK_SECONDARY)
+    ax.set_yticks(y, labels)
+    ax.set_xlim(0, remaining[0] * 1.35)
+    ax.xaxis.set_major_formatter("{x:,.0f}")
+    ax.set_xlabel("Rows")
+    ax.grid(axis="y", visible=False)
+    ax.set_title("F6. Rows remaining after each drop rule")
+    figures.save_figure(fig, "f06_cleaning_funnel")

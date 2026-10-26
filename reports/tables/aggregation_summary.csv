@@ -1,0 +1,4 @@
+level,rows,n_with_speed,mean_speed_kmh,std_speed_kmh,cv
+point (moving points),17664144,17664144,27.115,20.4021,0.7524
+cell_hour,611316,607230,56.1324,44.2956,0.7891
+vehicle_day,6519,5971,27.2363,8.1559,0.2995

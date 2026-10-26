@@ -70,6 +70,10 @@ SPEED_MAX_KMH = 200
 JUMP_KMH = 250
 JUMP_MIN_DIST_M = 100
 MAX_DROP_SHARE = 0.01
+# Vehicles whose exact duplicates (R08) are above MAX_DROP_SHARE and were reviewed by the
+# team: retransmitted records, so R08 may drop them. Every other vehicle and rule keeps
+# the guard.
+R08_REVIEWED_VEHICLES = [3, 5, 17, 30]
 GAP_S = 900
 IMPUTE_MAX_DT_S = 60
 IMPUTE_METHOD = "implied_speed"
