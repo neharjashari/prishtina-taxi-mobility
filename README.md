@@ -35,6 +35,7 @@ We use `whosonfirst-data-admin-xk-country-polygon.shp` for the Kosovo boundary a
 this repository; get them with:
 
 ```bash
+mkdir -p data/external/kosovo_admin
 curl -L -o data/external/kosovo_admin/whosonfirst-data-admin-xk-latest.zip https://data.geocode.earth/wof/dist/shapefile/whosonfirst-data-admin-xk-latest.zip
 unzip data/external/kosovo_admin/whosonfirst-data-admin-xk-latest.zip -d data/external/kosovo_admin
 ```
