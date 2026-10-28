@@ -109,6 +109,10 @@ TRIP_SHORT_POINTS = 3
 DISTANCE_BINS_M = [0, 2_000, 5_000, 10_000, 20_000, float("inf")]
 DISTANCE_BIN_LABELS = ["under 2 km", "2-5 km", "5-10 km", "10-20 km", "20 km or more"]
 N_COMPARE_BINS = 5
+NEAR_CONSTANT_SHARE = 0.95
+BINARY_MIN_VARIANCE = 0.05
+CORR_MAX_ABS = 0.9
+PCA_VARIANCE_TARGET = 0.90
 
 # --- Paths ----------------------------------------------------------------------------
 
