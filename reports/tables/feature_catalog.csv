@@ -1,0 +1,77 @@
+feature,dataset,formula,unit,attribute_type,purpose,owner
+dow,processed/points,"ts_local day of week, 0 = Monday",,"ordinal, circular","Q1 (day of week), Q5 (weekends vs working days)",features
+minute_of_week,processed/points,dow * 1440 + hour * 60 + minute,min,"interval, circular","Q1, Q5: weekly activity profile (hour-of-week heatmaps)",features
+tod_bucket,processed/points,"hour in [0, 6) night, [6, 10) morning, [10, 15) midday, [15, 19) afternoon, [19, 24) evening",,"ordinal, circular","Q1, Q2: activity and speed by part of the day",features
+is_night,processed/points,"hour in [0, 6)",,"nominal (binary, symmetric)",Q1: night-time activity,features
+is_moving,processed/points,speed_kmh >= 5,,"nominal (binary, symmetric)",Q3: moving vs standing time (time-weighted over steps),features
+accel_ms2,processed/points,"(speed_next - speed) / 3.6 / dt_s, NA across gaps, dt_s = 0, or timestamps without seconds",m/s²,ratio,Q2: stop-and-go driving across the day and the city; Phase II: speed spikes,features
+heading_change_deg,processed/points,"circular |heading_next - heading|, 0-180, NA across gaps",degrees,ratio,"No guiding question directly (turning, GPS zig-zag for Phase II outliers): candidate to drop",features
+compass8,processed/points,45-degree sectors of heading centred on N,,"nominal, circular","Q1, Q4: direction of flows, for example towards or away from the centre by hour",features
+speed_bin,processed/points,"speed_kmh in [0, 5) stopped, [5, 20) slow, [20, 50) urban, [50, 80) fast, [80, inf) highway",,ordinal,"Q2, Q3: time spent in each speed regime",features
+x_m,processed/points,"EPSG:32634 easting of (lon, lat)",m,interval,Q1 (where): distances and grid cells in metres,features
+y_m,processed/points,"EPSG:32634 northing of (lon, lat)",m,interval,Q1 (where): distances and grid cells in metres,features
+dist_center_m,processed/points,"haversine((lat, lon), CITY_CENTER)",m,ratio,"Q1 (centre vs outskirts), Q2 (speed by distance from the centre)",features
+hour_sin,processed/points,sin(2 pi (hour + minute / 60) / 24),,interval,Q1: clock time as a circle for distance-based methods,features
+hour_cos,processed/points,cos(2 pi (hour + minute / 60) / 24),,interval,Q1: clock time as a circle for distance-based methods,features
+heading_sin,processed/points,sin(radians(heading_deg)),,interval,Q4: direction of travel as a circle (359 next to 1 degree),features
+heading_cos,processed/points,cos(radians(heading_deg)),,interval,Q4: direction of travel as a circle (359 next to 1 degree),features
+stop_id,processed/points,"stay point: points within 100 m of the first point for at least 300 s, not across a gap",,nominal,"Q3 (standing time), Q4 (trip origins and destinations are stops)",trips
+trip_id,processed/points,"run of trip steps under TRIP_RULE, at least 2 points and a positive duration",,nominal,Q4: links every point to its trip,trips
+duration_s,processed/trips,end_ts - start_ts (sum of dt_s over the trip's steps),s,ratio,Q4: typical trip duration,trips
+distance_m,processed/trips,sum of dist_m over the trip's steps,m,ratio,Q4: typical trip distance,trips
+straight_m,processed/trips,"haversine(first point, last point)",m,ratio,Q4: how far the destination is from the origin,trips
+straightness,processed/trips,straight_m / distance_m,,ratio,Q4: direct rides vs round trips and cruising,trips
+avg_speed_kmh,processed/trips,distance_m / duration_s * 3.6,km/h,ratio,Q2: trip speed by time of day and area,trips
+max_speed_kmh,processed/trips,max(speed_kmh) over the trip's points,km/h,ratio,Q2; Phase II: speed outliers,trips
+n_points,processed/trips,count of the trip's points,,ratio,No guiding question (depends on the reporting rate): quality only,trips
+start_cell,processed/trips,cell_id of the first point,,nominal,Q4: origin areas (500 m cells),trips
+end_cell,processed/trips,cell_id of the last point,,nominal,Q4: destination areas (500 m cells),trips
+start_municipality,processed/trips,municipality of the first point,,nominal,Q4: origin municipality,trips
+end_municipality,processed/trips,municipality of the last point,,nominal,Q4: destination municipality,trips
+tod_bucket,processed/trips,tod_bucket of the start hour,,"ordinal, circular","Q1, Q4: when trips start",trips
+flag_short,processed/trips,n_points < 3 or distance_m = 0,,"nominal (binary, asymmetric)",Phase II: implausible or trivial trips,trips
+distance_m_log,processed/model/trips_model,log1p(distance_m),log1p(m),interval,Q4: trip distance,transform
+duration_s_log,processed/model/trips_model,log1p(duration_s),log1p(s),interval,Q4: trip duration,transform
+straight_m_log,processed/model/trips_model,log1p(straight_m),log1p(m),interval,Q4: reach of a trip,transform
+straightness,processed/model/trips_model,"straight_m / distance_m, NA when distance_m = 0.",,ratio,Q4: direct vs roundabout trips,transform
+avg_speed_kmh,processed/model/trips_model,distance_m / duration_s * 3.6.,km/h,ratio,Q2: trip speed,transform
+max_speed_kmh,processed/model/trips_model,Highest reported speed in the trip.,km/h,ratio,Q2; Phase II: speed outliers,transform
+n_points_log,processed/model/trips_model,log1p(n_points),log1p(value),interval,"none: point counts depend on the reporting rate, not on time",transform
+start_dist_center_m_log,processed/model/trips_model,log1p(start_dist_center_m),log1p(m),interval,Q4: origin centrality,transform
+end_dist_center_m_log,processed/model/trips_model,log1p(end_dist_center_m),log1p(m),interval,Q4: destination centrality,transform
+start_hour_sin,processed/model/trips_model,sin(2 pi h / 24) of the local start time h (hours with minutes).,,interval,Q1: start time as a circle,transform
+start_hour_cos,processed/model/trips_model,cos(2 pi h / 24) of the local start time.,,interval,Q1: start time as a circle,transform
+di2_share,processed/model/trips_model,"Share of the trip's time (its steps with a known di2) with the raw taximeter signal on; NA when unknown. Under the di2 rule every trip is a taximeter episode, so this only measures the signal's short dropouts; under stop_gap it is the paid share of the trip.",,ratio,"Q3, Q4: paid share of the trip (stop_gap rule only)",transform
+is_weekend,processed/model/trips_model,1 when the trip starts on a Saturday or Sunday.,,"nominal (binary, symmetric)",Q5: weekends vs working days,transform
+is_holiday,processed/model/trips_model,1 when the trip starts on the official holiday (June 28).,,"nominal (binary, asymmetric)",Q5: single-day case study,transform
+flag_short,processed/model/trips_model,1 when the trip has fewer than 3 points or zero distance.,,"nominal (binary, asymmetric)",none: quality flag for Phase II (trivial trips),transform
+tod_night,processed/model/trips_model,1 when tod_bucket at the start is night.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
+tod_morning,processed/model/trips_model,1 when tod_bucket at the start is morning.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
+tod_midday,processed/model/trips_model,1 when tod_bucket at the start is midday.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
+tod_afternoon,processed/model/trips_model,1 when tod_bucket at the start is afternoon.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
+tod_evening,processed/model/trips_model,1 when tod_bucket at the start is evening.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
+<feature>_z,processed/model/trips_model,"(x - mean) / std of every candidate feature, fitted on the whole table; parameters in scaling_params.csv",standard deviations,interval,PCA input and distance-based methods in Phase II: features on one scale,transform
+n_points,processed/model/vehicle_day_model,Points of the vehicle-day (vehicle_day).,,ratio,"none: point counts depend on the reporting rate, not on time",transform
+observed_h,processed/model/vehicle_day_model,"Observed hours, steps without a gap (vehicle_day).",h,ratio,none: coverage of the day (about 24 h unless the device was off),transform
+moving_h,processed/model/vehicle_day_model,Hours of moving steps (vehicle_day).,h,ratio,Q3: time moving,transform
+km,processed/model/vehicle_day_model,"Distance of the day, steps without a gap (vehicle_day).",km,ratio,"Q1, Q3: how much the taxi works",transform
+avg_speed_moving_kmh,processed/model/vehicle_day_model,Distance over time of the moving steps with seconds at both ends (vehicle_day); NA on a day without such steps.,km/h,ratio,Q2: speed,transform
+max_speed_kmh,processed/model/vehicle_day_model,Highest reported speed (vehicle_day).,km/h,ratio,Q2; Phase II: speed outliers,transform
+di1_share,processed/model/vehicle_day_model,Share of observed time with the ignition on (vehicle_day).,,ratio,Q3: switched on vs off,transform
+di2_share,processed/model/vehicle_day_model,Share of observed time with the taximeter on (vehicle_day).,,ratio,Q3: paid time,transform
+n_gaps,processed/model/vehicle_day_model,Steps longer than GAP_S (vehicle_day).,,ratio,none: data-quality indicator,transform
+di3_share,processed/model/vehicle_day_model,Share of observed time with a passenger (vehicle_day); NA when Di3 is unreliable for this vehicle.,,ratio,Q3: occupied time,transform
+di3_reliable,processed/model/vehicle_day_model,"Whether Di3 is usable for this vehicle: true when it is true for no more than DI3_STUCK_SHARE of observed ignition-off time; false above the threshold, and NA when that time is unavailable.",,nominal (binary),none: data-quality flag for interpreting di3_share,transform
+moving_share,processed/model/vehicle_day_model,moving_h / observed_h.,,ratio,Q3: share of time moving,transform
+n_trips,processed/model/vehicle_day_model,"Trips that start on this vehicle-day: 0 when none, NA for a vehicle without any trip under the di2 rule (its taximeter is never on).",,ratio,"Q1, Q4: how many trips",transform
+trip_median_distance_m_log,processed/model/vehicle_day_model,log1p(trip_median_distance_m),log1p(m),interval,Q4: typical trip distance,transform
+trip_median_duration_s_log,processed/model/vehicle_day_model,log1p(trip_median_duration_s),log1p(s),interval,Q4: typical trip duration,transform
+night_trip_share,processed/model/vehicle_day_model,Share of the day's trips that start in NIGHT_HOURS; NA without trips.,,ratio,Q1: night work,transform
+is_weekend,processed/model/vehicle_day_model,1 on Saturdays and Sundays.,,"nominal (binary, symmetric)",Q5: weekends vs working days,transform
+is_holiday,processed/model/vehicle_day_model,1 on the official holiday (June 28).,,"nominal (binary, asymmetric)",Q5: single-day case study,transform
+<feature>_z,processed/model/vehicle_day_model,"(x - mean) / std of every candidate feature, fitted on the whole table; parameters in scaling_params.csv",standard deviations,interval,PCA input and distance-based methods in Phase II: features on one scale,transform
+pc1,processed/model/vehicle_day_model,z-scored kept features x weights of component 1,,interval,"Phases II and III: compact summary of the vehicle-day (Q1, Q3)",reduce
+pc2,processed/model/vehicle_day_model,z-scored kept features x weights of component 2,,interval,"Phases II and III: compact summary of the vehicle-day (Q1, Q3)",reduce
+pc3,processed/model/vehicle_day_model,z-scored kept features x weights of component 3,,interval,"Phases II and III: compact summary of the vehicle-day (Q1, Q3)",reduce
+pc4,processed/model/vehicle_day_model,z-scored kept features x weights of component 4,,interval,"Phases II and III: compact summary of the vehicle-day (Q1, Q3)",reduce
+pc5,processed/model/vehicle_day_model,z-scored kept features x weights of component 5,,interval,"Phases II and III: compact summary of the vehicle-day (Q1, Q3)",reduce

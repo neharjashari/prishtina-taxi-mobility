@@ -1,0 +1,7 @@
+check,status,failing,total,note
+every trip has at least 2 points,pass,0,179923,
+every trip has a positive duration,pass,0,179923,
+trips of one vehicle do not overlap,pass,0,179923,the next trip starts at or after the end of the previous one
+"per vehicle, sum of trip distances <= sum of step distances without a gap",pass,0,83,
+"per vehicle, sum of trip distances <= sum of vehicle_day.km",pass,0,77,km is float32: tolerance 0.01% + 1 m
+points: rows written = rows read (nothing dropped),pass,0,83,

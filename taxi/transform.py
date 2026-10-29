@@ -348,8 +348,14 @@ MODEL_SPEC: dict[str, dict[str, tuple[str, str, str, str]]] = {
         "di3_share": (
             "",
             "ratio",
-            "Share of observed time with a passenger (vehicle_day). Di3 is stuck true in 25 of the 83 vehicles.",
+            "Share of observed time with a passenger (vehicle_day); NA when Di3 is unreliable for this vehicle.",
             "Q3: occupied time",
+        ),
+        "di3_reliable": (
+            "",
+            "nominal (binary)",
+            "Whether Di3 is usable for this vehicle: true when it is true for no more than DI3_STUCK_SHARE of observed ignition-off time; false above the threshold, and NA when that time is unavailable.",
+            "none: data-quality flag for interpreting di3_share",
         ),
         "n_gaps": (
             "",
@@ -552,13 +558,15 @@ def read_point_summaries(trip_ids: pd.Index) -> tuple[pd.DataFrame, dict]:
         "ts_utc",
         "source_row",
         "trip_id",
+        "di1",
+        "di3",
         "dist_center_m",
         "dt_s",
         "gap_after",
         *POINT_BIN_COLUMNS,
         *binaries,
     ]
-    per_trip, bins, binary = [], {}, {}
+    per_trip, bins, binary, reliability = [], {}, {}, []
     for v in io.vehicle_ids("final"):
         df = io.read_points("final", [v], columns=list(dict.fromkeys(columns)))
         df = df.sort_values(["ts_utc", "source_row"], kind="stable").reset_index(
@@ -567,6 +575,24 @@ def read_point_summaries(trip_ids: pd.Index) -> tuple[pd.DataFrame, dict]:
         step_h = (
             df["dt_s"].astype("float64").where(df["dt_s"].notna() & ~df["gap_after"], 0)
             / 3600
+        )
+        ignition_off = df["di1"].eq(False)
+        ignition_off_known = ignition_off & df["di3"].notna()
+        off_h = float(step_h[ignition_off].sum())
+        di3_off_h = float(
+            step_h[ignition_off_known & df["di3"].fillna(False)].sum()
+        )
+        di3_off_share = di3_off_h / off_h if off_h > 0 else np.nan
+        reliability.append(
+            {
+                "vehicle_id": int(v),
+                "di3_off_share": di3_off_share,
+                "di3_reliable": (
+                    di3_off_share <= config.DI3_STUCK_SHARE
+                    if np.isfinite(di3_off_share)
+                    else pd.NA
+                ),
+            }
         )
         for col in POINT_BIN_COLUMNS:
             sel = (
@@ -619,7 +645,12 @@ def read_point_summaries(trip_ids: pd.Index) -> tuple[pd.DataFrame, dict]:
             f"{len(missing):,} trips have no points with their trip_id (first: {missing[0]}); "
             "rerun the trips stage."
         )
-    return endpoints.reindex(trip_ids), {"bins": bins, "binary": binary}
+    reliability_df = pd.DataFrame(reliability).astype({"di3_reliable": "boolean"})
+    return endpoints.reindex(trip_ids), {
+        "bins": bins,
+        "binary": binary,
+        "di3_reliability": reliability_df,
+    }
 
 
 def hourly_profile() -> pd.DataFrame:
@@ -689,7 +720,9 @@ def vehicles_without_trips(trips: pd.DataFrame, vd: pd.DataFrame) -> list[int]:
     return sorted(with_days - set(trips["vehicle_id"].astype(int)))
 
 
-def build_vehicle_day_model(vd: pd.DataFrame, trips: pd.DataFrame) -> pd.DataFrame:
+def build_vehicle_day_model(
+    vd: pd.DataFrame, trips: pd.DataFrame, di3_reliability: pd.DataFrame
+) -> pd.DataFrame:
     t = trips.assign(
         date_local=trips["start_ts_local"].dt.date,
         night=trips["start_ts_local"].dt.hour.between(
@@ -718,6 +751,9 @@ def build_vehicle_day_model(vd: pd.DataFrame, trips: pd.DataFrame) -> pd.DataFra
         )
     s = stats.reindex(key)
     no_signal = vd["vehicle_id"].isin(vehicles_without_trips(trips, vd)).to_numpy()
+    reliability = di3_reliability.set_index("vehicle_id")["di3_reliable"]
+    di3_reliable = vd["vehicle_id"].map(reliability).astype("boolean")
+    di3_usable = di3_reliable.fillna(False).to_numpy(dtype=bool)
     observed = vd["observed_h"].astype("float64")
     vm = pd.DataFrame(
         {
@@ -734,10 +770,11 @@ def build_vehicle_day_model(vd: pd.DataFrame, trips: pd.DataFrame) -> pd.DataFra
                     "max_speed_kmh",
                     "di1_share",
                     "di2_share",
-                    "di3_share",
                     "n_gaps",
                 ]
             },
+            "di3_share": vd["di3_share"].where(di3_usable).astype("float64"),
+            "di3_reliable": di3_reliable,
             "moving_share": vd["moving_h"].astype("float64")
             / observed.where(observed > 0),
             "n_trips": s["n_trips"].fillna(0).mask(no_signal).to_numpy(dtype="float64"),
@@ -931,7 +968,10 @@ def run(dev: bool) -> None:
     models, skew_rows, scale_rows = {}, [], []
     for table, frame in [
         ("trips_model", build_trips_model(trips, endpoints)),
-        ("vehicle_day_model", build_vehicle_day_model(vd, trips)),
+        (
+            "vehicle_day_model",
+            build_vehicle_day_model(vd, trips, summaries["di3_reliability"]),
+        ),
     ]:
         frame, rows = choose_log(frame, table)
         skew_rows += rows
@@ -941,6 +981,7 @@ def run(dev: bool) -> None:
 
     io.write_report_table(pd.DataFrame(skew_rows), "transformation_skewness")
     io.write_report_table(pd.DataFrame(scale_rows), "scaling_params")
+    io.write_report_table(summaries["di3_reliability"], "di3_reliability")
     bins = discretization_table(trips, summaries["bins"])
     io.write_report_table(bins, "discretization_bins")
     io.write_report_table(

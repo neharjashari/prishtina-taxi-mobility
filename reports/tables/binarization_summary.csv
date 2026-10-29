@@ -1,0 +1,12 @@
+column,dataset,n,ones,zeros,na,share_ones_points,share_ones_time,asymmetric,note
+is_moving,processed/points,28516912,17664144,10852768,0,0.6194,0.2819,False,moving and standing are both informative states
+is_weekend,processed/points,28516912,5937268,22579644,0,0.2082,0.2839,False,weekend and working day are both informative
+is_night,processed/points,28516912,3383782,25133130,0,0.1187,0.2446,False,night and day are both informative
+is_holiday,processed/points,28516912,171533,28345379,0,0.006,0.0108,True,only the one holiday is informative; two ordinary days are not alike because neither is a holiday
+di1,processed/points,28516912,27467541,1049371,0,0.9632,0.4473,False,ignition on and off are both informative states
+di2,processed/points,28516912,10355467,18161441,4,0.3631,0.1663,True,taximeter on marks a paid ride; off is the default state
+di3,processed/points,28516912,12490562,16026346,4,0.438,0.3598,True,a passenger on board is the event of interest; stuck in 25 vehicles
+in_kosovo,processed/points,28516912,28416667,100245,0,0.9965,0.998,True,the rare value (outside Kosovo) is the informative one
+gap_after,processed/points,28516912,5969,28510943,0,0.0002,,True,quality flag: only a gap carries information
+speed_imputed,processed/points,28516912,0,28516912,0,0.0,0.0,True,quality flag
+flag_dup_ts,processed/points,28516912,425690,28091222,0,0.0149,0.0064,True,quality flag

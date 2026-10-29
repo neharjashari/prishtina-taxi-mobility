@@ -26,6 +26,129 @@ processed/fleet_hour,n_vehicles_moving,int16,,ratio,,Vehicles with at least one 
 processed/fleet_hour,n_points,int32,,ratio,,Points in the hour.,,aggregate
 processed/fleet_hour,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of the moving steps with seconds at both ends (T2). NA without such steps.,,aggregate
 processed/fleet_hour,di2_share,float32,,ratio,0 to 1,Share of observed time with di2 (taximeter) true; steps with di2 NA left out. NA without observed time.,,aggregate
+processed/model/trips_model,trip_id,string,,nominal,,"Trip id, as in processed/trips.",processed/trips,transform
+processed/model/trips_model,vehicle_id,int16,,nominal,,Taxi id.,processed/trips,transform
+processed/model/trips_model,distance_m_log,float64,log1p(m),interval,,log1p of distance_m: Trip distance (processed/trips).,processed/trips,transform
+processed/model/trips_model,duration_s_log,float64,log1p(s),interval,,log1p of duration_s: Trip duration (processed/trips).,processed/trips,transform
+processed/model/trips_model,straight_m_log,float64,log1p(m),interval,,log1p of straight_m: Distance from origin to destination.,processed/trips,transform
+processed/model/trips_model,straightness,float64,,ratio,,"straight_m / distance_m, NA when distance_m = 0.",processed/trips,transform
+processed/model/trips_model,avg_speed_kmh,float64,km/h,ratio,,distance_m / duration_s * 3.6.,processed/trips,transform
+processed/model/trips_model,max_speed_kmh,float64,km/h,ratio,,Highest reported speed in the trip.,processed/trips,transform
+processed/model/trips_model,n_points_log,float64,log1p(value),interval,,log1p of n_points: Points in the trip.,processed/trips,transform
+processed/model/trips_model,start_dist_center_m_log,float64,log1p(m),interval,,log1p of start_dist_center_m: dist_center_m of the trip's first point.,processed/trips,transform
+processed/model/trips_model,end_dist_center_m_log,float64,log1p(m),interval,,log1p of end_dist_center_m: dist_center_m of the trip's last point.,processed/trips,transform
+processed/model/trips_model,start_hour_sin,float64,,interval,,sin(2 pi h / 24) of the local start time h (hours with minutes).,processed/trips,transform
+processed/model/trips_model,start_hour_cos,float64,,interval,,cos(2 pi h / 24) of the local start time.,processed/trips,transform
+processed/model/trips_model,di2_share,float64,,ratio,,"Share of the trip's time (its steps with a known di2) with the raw taximeter signal on; NA when unknown. Under the di2 rule every trip is a taximeter episode, so this only measures the signal's short dropouts; under stop_gap it is the paid share of the trip.",processed/trips,transform
+processed/model/trips_model,is_weekend,int8,,"nominal (binary, symmetric)",,1 when the trip starts on a Saturday or Sunday.,processed/trips,transform
+processed/model/trips_model,is_holiday,int8,,"nominal (binary, asymmetric)",,1 when the trip starts on the official holiday (June 28).,processed/trips,transform
+processed/model/trips_model,flag_short,int8,,"nominal (binary, asymmetric)",,1 when the trip has fewer than 3 points or zero distance.,processed/trips,transform
+processed/model/trips_model,tod_night,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is night.,processed/trips,transform
+processed/model/trips_model,tod_morning,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is morning.,processed/trips,transform
+processed/model/trips_model,tod_midday,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is midday.,processed/trips,transform
+processed/model/trips_model,tod_afternoon,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is afternoon.,processed/trips,transform
+processed/model/trips_model,tod_evening,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is evening.,processed/trips,transform
+processed/model/trips_model,distance_m_log_z,float32,standard deviations,interval,,z-score of distance_m (log1p): (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,duration_s_log_z,float32,standard deviations,interval,,z-score of duration_s (log1p): (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,straight_m_log_z,float32,standard deviations,interval,,z-score of straight_m (log1p): (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,straightness_z,float32,standard deviations,interval,,z-score of straightness: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,avg_speed_kmh_z,float32,standard deviations,interval,,z-score of avg_speed_kmh: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,max_speed_kmh_z,float32,standard deviations,interval,,z-score of max_speed_kmh: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,n_points_log_z,float32,standard deviations,interval,,z-score of n_points (log1p): (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,start_dist_center_m_log_z,float32,standard deviations,interval,,z-score of start_dist_center_m (log1p): (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,end_dist_center_m_log_z,float32,standard deviations,interval,,z-score of end_dist_center_m (log1p): (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,start_hour_sin_z,float32,standard deviations,interval,,z-score of start_hour_sin: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,start_hour_cos_z,float32,standard deviations,interval,,z-score of start_hour_cos: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,di2_share_z,float32,standard deviations,interval,,z-score of di2_share: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,is_weekend_z,float32,standard deviations,interval,,z-score of is_weekend: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,is_holiday_z,float32,standard deviations,interval,,z-score of is_holiday: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/trips_model,flag_short_z,float32,standard deviations,interval,,z-score of flag_short: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
+processed/model/vehicle_day_model,vehicle_id,int16,,nominal,,Taxi id.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,date_local,object,,interval,,Local date.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,n_points,float64,,ratio,,Points of the vehicle-day (vehicle_day).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,observed_h,float64,h,ratio,,"Observed hours, steps without a gap (vehicle_day).","processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,moving_h,float64,h,ratio,,Hours of moving steps (vehicle_day).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,km,float64,km,ratio,,"Distance of the day, steps without a gap (vehicle_day).","processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,avg_speed_moving_kmh,float64,km/h,ratio,,Distance over time of the moving steps with seconds at both ends (vehicle_day); NA on a day without such steps.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,max_speed_kmh,float64,km/h,ratio,,Highest reported speed (vehicle_day).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di1_share,float64,,ratio,,Share of observed time with the ignition on (vehicle_day).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di2_share,float64,,ratio,,Share of observed time with the taximeter on (vehicle_day).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,n_gaps,float64,,ratio,,Steps longer than GAP_S (vehicle_day).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di3_share,float64,,ratio,,Share of observed time with a passenger (vehicle_day); NA when Di3 is unreliable for this vehicle.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di3_reliable,boolean,,nominal (binary),,"Whether Di3 is usable for this vehicle: true when it is true for no more than DI3_STUCK_SHARE of observed ignition-off time; false above the threshold, and NA when that time is unavailable.","processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,moving_share,float64,,ratio,,moving_h / observed_h.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,n_trips,float64,,ratio,,"Trips that start on this vehicle-day: 0 when none, NA for a vehicle without any trip under the di2 rule (its taximeter is never on).","processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,trip_median_distance_m_log,float64,log1p(m),interval,,log1p of trip_median_distance_m: Median distance of the day's trips; NA without trips.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,trip_median_duration_s_log,float64,log1p(s),interval,,log1p of trip_median_duration_s: Median duration of the day's trips; NA without trips.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,night_trip_share,float64,,ratio,,Share of the day's trips that start in NIGHT_HOURS; NA without trips.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,is_weekend,int8,,"nominal (binary, symmetric)",,1 on Saturdays and Sundays.,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,is_holiday,int8,,"nominal (binary, asymmetric)",,1 on the official holiday (June 28).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,n_points_z,float32,standard deviations,interval,,z-score of n_points: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,observed_h_z,float32,standard deviations,interval,,z-score of observed_h: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,moving_h_z,float32,standard deviations,interval,,z-score of moving_h: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,km_z,float32,standard deviations,interval,,z-score of km: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,avg_speed_moving_kmh_z,float32,standard deviations,interval,,z-score of avg_speed_moving_kmh: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,max_speed_kmh_z,float32,standard deviations,interval,,z-score of max_speed_kmh: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di1_share_z,float32,standard deviations,interval,,z-score of di1_share: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di2_share_z,float32,standard deviations,interval,,z-score of di2_share: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,n_gaps_z,float32,standard deviations,interval,,z-score of n_gaps: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di3_share_z,float32,standard deviations,interval,,z-score of di3_share: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,di3_reliable_z,float32,standard deviations,interval,,z-score of di3_reliable: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,moving_share_z,float32,standard deviations,interval,,z-score of moving_share: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,n_trips_z,float32,standard deviations,interval,,z-score of n_trips: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,trip_median_distance_m_log_z,float32,standard deviations,interval,,z-score of trip_median_distance_m (log1p): (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,trip_median_duration_s_log_z,float32,standard deviations,interval,,z-score of trip_median_duration_s (log1p): (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,night_trip_share_z,float32,standard deviations,interval,,z-score of night_trip_share: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,is_weekend_z,float32,standard deviations,interval,,z-score of is_weekend: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,is_holiday_z,float32,standard deviations,interval,,z-score of is_holiday: (x - mean) / std over the whole table (scaling_params.csv).,"processed/vehicle_day, processed/trips",transform
+processed/model/vehicle_day_model,pc1,float32,,interval,,"Score on principal component 1 of the z-scored kept features (32.5% of the variance, 32.5% cumulative); largest weights: km +0.45, di2_share +0.45, moving_share +0.43. NA when a kept feature is NA.",pca_loadings.csv,reduce
+processed/model/vehicle_day_model,pc2,float32,,interval,,"Score on principal component 2 of the z-scored kept features (23.9% of the variance, 56.4% cumulative); largest weights: trip_median_distance_m_log +0.56, trip_median_duration_s_log +0.51, n_trips -0.38. NA when a kept feature is NA.",pca_loadings.csv,reduce
+processed/model/vehicle_day_model,pc3,float32,,interval,,"Score on principal component 3 of the z-scored kept features (18.0% of the variance, 74.4% cumulative); largest weights: night_trip_share +0.59, avg_speed_moving_kmh +0.49, is_weekend +0.39. NA when a kept feature is NA.",pca_loadings.csv,reduce
+processed/model/vehicle_day_model,pc4,float32,,interval,,"Score on principal component 4 of the z-scored kept features (10.2% of the variance, 84.6% cumulative); largest weights: night_trip_share +0.76, is_weekend -0.54, avg_speed_moving_kmh -0.23. NA when a kept feature is NA.",pca_loadings.csv,reduce
+processed/model/vehicle_day_model,pc5,float32,,interval,,"Score on principal component 5 of the z-scored kept features (8.4% of the variance, 93.0% cumulative); largest weights: is_weekend +0.67, avg_speed_moving_kmh -0.52, n_trips +0.27. NA when a kept feature is NA.",pca_loadings.csv,reduce
+processed/points,vehicle_id,int16,,nominal,"ids between 1 and 119, with gaps","Taxi id, from the raw file name. Stored as a number, but only a label.",file name,ingest
+processed/points,source_row,int32,,ordinal,0 to rows - 1,0-based data row in the raw file. With vehicle_id it points back to one raw line.,row position in the raw file,ingest
+processed/points,ts_utc,"datetime64[ns, UTC]",,interval,"June 1 to August 31, 2023","Time of the point in UTC, used for storage, ordering, and time differences. Differences make sense, ratios do not.","DeviceDateTime, read on the device clock (DEVICE_TZ)",ingest
+processed/points,ts_local,"datetime64[ns, Europe/Skopje]",,interval,"June 1 to August 31, 2023, UTC+2","The same instant in Kosovo local time, used for everything calendar-related (date, hour, weekday).",ts_utc,ingest
+processed/points,ts_has_seconds,boolean,,nominal,true / false / NA,"False when the raw timestamp has minutes only: vehicles 1 and 100 on days 1-12 of each month, where the files were re-saved in a spreadsheet. Several points can then share a timestamp. NA when the timestamp did not parse.",format of DeviceDateTime,ingest
+processed/points,lon,float64,degrees (WGS 84),interval,-180 to 180,Longitude.,Longitute (sic),ingest
+processed/points,lat,float64,degrees (WGS 84),interval,-90 to 90,Latitude.,Latitude,ingest
+processed/points,speed_kmh,float32,km/h,ratio,0 or more,"Speed reported by the device. 0 means standing still and 60 km/h is twice 30 km/h, so ratios make sense.",Speed,ingest
+processed/points,heading_deg,float32,degrees,"interval, circular",0 to 360,"Direction of travel. Circular: the mean of 350 and 10 degrees is 0, not 180.",Direction,ingest
+processed/points,di1,boolean,,nominal,true / false / NA,"Digital input 1, binary: the ignition is on (dataset author).",Di1,ingest
+processed/points,di2,boolean,,nominal,true / false / NA,"Digital input 2, binary: the taximeter is on (dataset author, from memory; the data agrees). The signal drops out for a few seconds at a time.",Di2,ingest
+processed/points,di3,boolean,,nominal,true / false / NA,"Digital input 3, binary: a passenger is in the vehicle (dataset author, from memory). Stuck true most of the time in 25 of the 83 vehicles.",Di3,ingest
+processed/points,dt_s,float32,s,ratio,"0 or more, NA for the last point",Duration of the step that starts at this point: time to the vehicle's next kept point. 0 when both share a timestamp.,ts_utc,clean
+processed/points,dist_m,float32,m,ratio,"0 or more, NA for the last point",Haversine distance of the step that starts at this point.,"lat, lon",clean
+processed/points,implied_speed_kmh,float32,km/h,ratio,"0 or more, NA","dist_m / dt_s * 3.6. NA when dt_s is NA or 0, and when the step starts or ends at a timestamp without seconds.","dt_s, dist_m",clean
+processed/points,gap_after,bool,,nominal,true / false,"The step is longer than GAP_S (900 s): the time is unknown, not parked. Left out of durations and distances (M4).",dt_s,clean
+processed/points,speed_imputed,bool,,nominal,true / false,speed_kmh was missing (or set to NA by R06) and filled by rule M2 with IMPUTE_METHOD.,rule M2,clean
+processed/points,flag_dup_ts,bool,,nominal,true / false,Another kept row of the vehicle has the same ts_utc with different values (R09). Mostly the timestamps without seconds of vehicles 1 and 100.,rule R09,clean
+processed/points,in_kosovo,bool,,nominal,true / false,The point lies inside the Kosovo boundary (R05). Points outside can be real trips abroad; they are kept.,"WOF country polygon (HDX, CC BY)",clean
+processed/points,municipality,category,,nominal,38 municipality names; NA outside Kosovo,"Municipality the point lies in, labelled by WOF id: polygon 1108809573, named 'Fushe Kosova' in WOF, is labelled 'Mitrovice e Veriut' (North Mitrovica); every other polygon keeps its WOF name.","WOF localadmin polygons (HDX, CC BY)",clean
+processed/points,cell_id,string,,nominal,<col>_<row>,"Square grid cell of GRID_SIZE_M (500 m) in EPSG:32634: col = floor(x / 500), row = floor(y / 500).","lat, lon",clean
+processed/points,date_local,object,,interval,2023-06-01 to 2023-08-31,Local date of the point.,ts_local,clean
+processed/points,hour,int8,h,"interval, circular",0 to 23,Local hour of the point.,ts_local,clean
+processed/points,is_weekend,bool,,nominal,true / false,The local date is a Saturday or Sunday.,calendar_2023.csv,clean
+processed/points,is_holiday,bool,,nominal,true / false,"The local date is an official holiday (Kurban Bajram, June 28, is the only one in the window).",calendar_2023.csv (Ministry of Internal Affairs),clean
+processed/points,dow,int8,,"ordinal, circular",0 = Monday ... 6 = Sunday,Local day of the week.,ts_local,features
+processed/points,minute_of_week,int16,min,"interval, circular",0 to 10079,Minutes since Monday 00:00 local time: dow * 1440 + hour * 60 + minute.,ts_local,features
+processed/points,tod_bucket,category,,"ordinal, circular","night [0, 6), morning [6, 10), midday [10, 15), afternoon [15, 19), evening [19, 24) local hours","Time of day bucket of the local hour (TOD_BUCKETS, left-closed).",hour,features
+processed/points,is_night,bool,,nominal,true / false,"The local hour is in NIGHT_HOURS, [0, 6).",hour,features
+processed/points,is_moving,bool,,nominal,true / false,speed_kmh >= V_MOVE_KMH (5 km/h). False when speed_kmh is NA. The step that starts at the point counts as moving time when this is true.,speed_kmh,features
+processed/points,accel_ms2,float32,m/s²,ratio,"negative when slowing down, NA","Acceleration over the step that starts at the point: (next point's speed - this point's speed) / 3.6 / dt_s. NA for the last point, when gap_after is true, when dt_s is 0, and when the step starts or ends at a timestamp without seconds (their dt_s is not exact).","speed_kmh, dt_s, gap_after, ts_has_seconds",features
+processed/points,heading_change_deg,float32,degrees,ratio,"0 to 180, NA","Circular difference to the next point's heading, min(|a - b| mod 360, 360 - |a - b| mod 360). NA for the last point and across a gap. A standing vehicle keeps its last heading or reports noise.","heading_deg, gap_after",features
+processed/points,compass8,category,,"nominal, circular","N, NE, E, SE, S, SW, W, NW","Heading in 45-degree sectors centred on north: N covers [337.5, 22.5), NE [22.5, 67.5), and so on. NA when heading_deg is NA.",heading_deg,features
+processed/points,speed_bin,category,,ordinal,"stopped [0, 5), slow [5, 20), urban [20, 50), fast [50, 80), highway [80, inf) km/h","Domain-based speed bin (SPEED_BINS_KMH, left-closed). 'stopped' ends at V_MOVE_KMH, so it is exactly the points with is_moving false. NA when speed_kmh is NA.",speed_kmh,features
+processed/points,x_m,float64,m (EPSG:32634),interval,"easting, WGS 84 / UTM zone 34N","Projected x coordinate, so distances can be measured in metres.","lon, lat",features
+processed/points,y_m,float64,m (EPSG:32634),interval,"northing, WGS 84 / UTM zone 34N",Projected y coordinate.,"lon, lat",features
+processed/points,dist_center_m,float32,m,ratio,0 or more,"Haversine distance to CITY_CENTER (42.66369, 21.16385): Skanderbeg Square, OpenStreetMap node 4591682869, https://www.openstreetmap.org/node/4591682869.","lat, lon, CITY_CENTER",features
+processed/points,hour_sin,float32,,interval,-1 to 1,"sin(2 pi (hour + minute / 60) / 24): the clock time as a point on a circle, with hour_cos, so that 23:59 lies next to 00:00.",ts_local,features
+processed/points,hour_cos,float32,,interval,-1 to 1,cos(2 pi (hour + minute / 60) / 24).,ts_local,features
+processed/points,heading_sin,float32,,interval,"-1 to 1, NA","sin(heading in radians): the east component of the direction of travel, with heading_cos (the north component), so that 359 degrees lies next to 1 degree.",heading_deg,features
+processed/points,heading_cos,float32,,interval,"-1 to 1, NA",cos(heading in radians).,heading_deg,features
+processed/points,stop_id,string,,nominal,"<vehicle_id>-<YYYYMMDD>-S<seq>, NA when not in a stop","Stop (stay point) the point belongs to: consecutive points within STOP_RADIUS_M (100 m) of the stop's first point for at least STOP_MIN_S (300 s), never across a gap. Local date of the stop's first point.","x_m, y_m, ts_utc, gap_after",trips
+processed/points,trip_id,string,,nominal,"<vehicle_id>-<YYYYMMDD>-<seq>, NA when not in a trip","Trip the point belongs to, by the rule TRIP_RULE (see processed/trips, column rule). Local date of the trip start. Under stop_gap, a trip's first and last points are the last point of the stop before and the first point of the stop after, so they also have a stop_id.","stop_id, gap_after (stop_gap) or di2, gap_after (di2)",trips
 processed/points_clean,vehicle_id,int16,,nominal,"ids between 1 and 119, with gaps","Taxi id, from the raw file name. Stored as a number, but only a label.",file name,ingest
 processed/points_clean,source_row,int32,,ordinal,0 to rows - 1,0-based data row in the raw file. With vehicle_id it points back to one raw line.,row position in the raw file,ingest
 processed/points_clean,ts_utc,"datetime64[ns, UTC]",,interval,"June 1 to August 31, 2023","Time of the point in UTC, used for storage, ordering, and time differences. Differences make sense, ratios do not.","DeviceDateTime, read on the device clock (DEVICE_TZ)",ingest
@@ -51,6 +174,26 @@ processed/points_clean,date_local,object,,interval,2023-06-01 to 2023-08-31,Loca
 processed/points_clean,hour,int8,h,"interval, circular",0 to 23,Local hour of the point.,ts_local,clean
 processed/points_clean,is_weekend,bool,,nominal,true / false,The local date is a Saturday or Sunday.,calendar_2023.csv,clean
 processed/points_clean,is_holiday,bool,,nominal,true / false,"The local date is an official holiday (Kurban Bajram, June 28, is the only one in the window).",calendar_2023.csv (Ministry of Internal Affairs),clean
+processed/trips,trip_id,string,,nominal,<vehicle_id>-<YYYYMMDD>-<seq>,"Trip id: vehicle, local date of the trip start (a trip that crosses midnight belongs to the day it starts), and a sequence number from 001.",trips stage,trips
+processed/trips,vehicle_id,int16,,nominal,"ids between 1 and 119, with gaps",Taxi id.,points,trips
+processed/trips,rule,category,,nominal,stop_gap / di2,Segmentation rule that produced the trip (TRIP_RULE).,config.TRIP_RULE,trips
+processed/trips,start_ts_local,"datetime64[ns, Europe/Skopje]",,interval,"June 1 to August 31, 2023",Local time of the trip's first point.,ts_local,trips
+processed/trips,end_ts_local,"datetime64[ns, Europe/Skopje]",,interval,"June 1 to September 1, 2023",Local time of the trip's last point.,ts_local,trips
+processed/trips,duration_s,float32,s,ratio,more than 0,end - start: the sum of dt_s over the trip's steps (no gap inside a trip).,dt_s,trips
+processed/trips,distance_m,float32,m,ratio,0 or more,Sum of dist_m (haversine) over the trip's steps.,dist_m,trips
+processed/trips,straight_m,float32,m,ratio,0 or more,Haversine distance from the first to the last point.,"lat, lon",trips
+processed/trips,straightness,float32,,ratio,"0 to 1, NA when distance_m = 0","straight_m / distance_m: 1 for a straight trip, near 0 for a round trip.","straight_m, distance_m",trips
+processed/trips,avg_speed_kmh,float32,km/h,ratio,0 or more,"distance_m / duration_s * 3.6 (distance over time, not a mean of points).","distance_m, duration_s",trips
+processed/trips,max_speed_kmh,float32,km/h,ratio,"0 to 200, NA",Highest reported speed_kmh among the trip's points.,speed_kmh,trips
+processed/trips,n_points,int32,,ratio,2 or more,"Points in the trip, including its first and last point.",points,trips
+processed/trips,start_cell,category,,nominal,<col>_<row>,Grid cell (500 m) of the first point.,cell_id,trips
+processed/trips,end_cell,category,,nominal,<col>_<row>,Grid cell (500 m) of the last point.,cell_id,trips
+processed/trips,start_municipality,category,,nominal,municipality names; NA outside Kosovo,Municipality of the first point.,municipality,trips
+processed/trips,end_municipality,category,,nominal,municipality names; NA outside Kosovo,Municipality of the last point.,municipality,trips
+processed/trips,tod_bucket,category,,"ordinal, circular","night, morning, midday, afternoon, evening",Time-of-day bucket of the local start hour.,hour,trips
+processed/trips,is_weekend,bool,,nominal,true / false,The trip starts on a Saturday or Sunday.,is_weekend,trips
+processed/trips,is_holiday,bool,,nominal,true / false,"The trip starts on an official holiday (Kurban Bajram, June 28).",is_holiday,trips
+processed/trips,flag_short,bool,,nominal,true / false,"The trip has fewer than TRIP_SHORT_POINTS (3) points or distance_m = 0. Kept, for Phase II.","n_points, distance_m",trips
 processed/vehicle_day,vehicle_id,int16,,nominal,,Vehicle.,,aggregate
 processed/vehicle_day,date_local,object,,interval,,Local date. Days without data have no row (M6).,,aggregate
 processed/vehicle_day,n_points,int32,,ratio,,Points of the vehicle on the day.,,aggregate
@@ -67,3 +210,29 @@ processed/vehicle_day,di3_share,float32,,ratio,0 to 1,Share of observed time wit
 processed/vehicle_day,n_gaps,int16,,ratio,,Steps of the day with gap_after true.,,aggregate
 processed/vehicle_day,is_weekend,bool,,nominal,true / false,Saturday or Sunday.,,aggregate
 processed/vehicle_day,is_holiday,bool,,nominal,true / false,Official holiday (calendar_2023.csv).,,aggregate
+sample/points_sample,vehicle_id,int16,,nominal,"ids between 1 and 119, with gaps","Taxi id, from the raw file name. Stored as a number, but only a label.",file name,ingest
+sample/points_sample,source_row,int32,,ordinal,0 to rows - 1,0-based data row in the raw file. With vehicle_id it points back to one raw line.,row position in the raw file,ingest
+sample/points_sample,ts_utc,"datetime64[ns, UTC]",,interval,"June 1 to August 31, 2023","Time of the point in UTC, used for storage, ordering, and time differences. Differences make sense, ratios do not.","DeviceDateTime, read on the device clock (DEVICE_TZ)",ingest
+sample/points_sample,ts_local,"datetime64[ns, Europe/Skopje]",,interval,"June 1 to August 31, 2023, UTC+2","The same instant in Kosovo local time, used for everything calendar-related (date, hour, weekday).",ts_utc,ingest
+sample/points_sample,ts_has_seconds,boolean,,nominal,true / false / NA,"False when the raw timestamp has minutes only: vehicles 1 and 100 on days 1-12 of each month, where the files were re-saved in a spreadsheet. Several points can then share a timestamp. NA when the timestamp did not parse.",format of DeviceDateTime,ingest
+sample/points_sample,lon,float64,degrees (WGS 84),interval,-180 to 180,Longitude. NA in this file when coords_withheld is true.,Longitute (sic),ingest
+sample/points_sample,lat,float64,degrees (WGS 84),interval,-90 to 90,Latitude. NA in this file when coords_withheld is true.,Latitude,ingest
+sample/points_sample,speed_kmh,float32,km/h,ratio,0 or more,"Speed reported by the device. 0 means standing still and 60 km/h is twice 30 km/h, so ratios make sense.",Speed,ingest
+sample/points_sample,heading_deg,float32,degrees,"interval, circular",0 to 360,"Direction of travel. Circular: the mean of 350 and 10 degrees is 0, not 180.",Direction,ingest
+sample/points_sample,di1,boolean,,nominal,true / false / NA,"Digital input 1, binary: the ignition is on (dataset author).",Di1,ingest
+sample/points_sample,di2,boolean,,nominal,true / false / NA,"Digital input 2, binary: the taximeter is on (dataset author, from memory; the data agrees). The signal drops out for a few seconds at a time.",Di2,ingest
+sample/points_sample,di3,boolean,,nominal,true / false / NA,"Digital input 3, binary: a passenger is in the vehicle (dataset author, from memory). Stuck true most of the time in 25 of the 83 vehicles.",Di3,ingest
+sample/points_sample,dt_s,float32,s,ratio,"0 or more, NA for the last point",Duration of the step that starts at this point: time to the vehicle's next kept point. 0 when both share a timestamp.,ts_utc,clean
+sample/points_sample,dist_m,float32,m,ratio,"0 or more, NA for the last point",Haversine distance of the step that starts at this point.,"lat, lon",clean
+sample/points_sample,implied_speed_kmh,float32,km/h,ratio,"0 or more, NA","dist_m / dt_s * 3.6. NA when dt_s is NA or 0, and when the step starts or ends at a timestamp without seconds.","dt_s, dist_m",clean
+sample/points_sample,gap_after,bool,,nominal,true / false,"The step is longer than GAP_S (900 s): the time is unknown, not parked. Left out of durations and distances (M4).",dt_s,clean
+sample/points_sample,speed_imputed,bool,,nominal,true / false,speed_kmh was missing (or set to NA by R06) and filled by rule M2 with IMPUTE_METHOD.,rule M2,clean
+sample/points_sample,flag_dup_ts,bool,,nominal,true / false,Another kept row of the vehicle has the same ts_utc with different values (R09). Mostly the timestamps without seconds of vehicles 1 and 100.,rule R09,clean
+sample/points_sample,in_kosovo,bool,,nominal,true / false,The point lies inside the Kosovo boundary (R05). Points outside can be real trips abroad; they are kept.,"WOF country polygon (HDX, CC BY)",clean
+sample/points_sample,municipality,category,,nominal,38 municipality names; NA outside Kosovo,"Municipality the point lies in, labelled by WOF id: polygon 1108809573, named 'Fushe Kosova' in WOF, is labelled 'Mitrovice e Veriut' (North Mitrovica); every other polygon keeps its WOF name.","WOF localadmin polygons (HDX, CC BY)",clean
+sample/points_sample,cell_id,string,,nominal,<col>_<row>,"Square grid cell of GRID_SIZE_M (500 m) in EPSG:32634: col = floor(x / 500), row = floor(y / 500). NA in this file when coords_withheld is true.","lat, lon",clean
+sample/points_sample,date_local,object,,interval,2023-06-01 to 2023-08-31,Local date of the point.,ts_local,clean
+sample/points_sample,hour,int8,h,"interval, circular",0 to 23,Local hour of the point.,ts_local,clean
+sample/points_sample,is_weekend,bool,,nominal,true / false,The local date is a Saturday or Sunday.,calendar_2023.csv,clean
+sample/points_sample,is_holiday,bool,,nominal,true / false,"The local date is an official holiday (Kurban Bajram, June 28, is the only one in the window).",calendar_2023.csv (Ministry of Internal Affairs),clean
+sample/points_sample,coords_withheld,bool,,nominal,true / false,"lat, lon, and cell_id are withheld (NA): the row is at night (00:00 to 06:00 local) with the ignition off, so it would show where the taxi parks overnight (rule S01). Only in this public file.","hour, di1",sample
