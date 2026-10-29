@@ -1,11 +1,11 @@
-"""Vlerat qe mungojne: menyrat per te vleresuar shpejtesine, identifikimi dhe testi.
+"""Missing values: identification, the speed estimates, and the imputation test.
 
-missing_strategy.csv tregon cka mungon, sa, pse mendojme se mungon dhe si e trajtojme
-(rregullat M1-M6). missing_gaps.csv tregon ne cilen ore dhe me cfare ndezjeje (di1)
-fillojne boshllaqet, qe tregon se ato nuk mungojne rastesisht (jo MCAR).
+missing_strategy.csv: what is missing, how much, the likely mechanism, and how it is
+handled (rules M1-M6). missing_gaps.csv: the hour and the ignition state (di1) at which
+gaps start, which shows they are not missing completely at random.
 
-imputation_eval.csv: fshehim 5% te shpejtesive te njohura te pikave qe M2 do t'i
-plotesonte, i plotesojme me secilen menyre dhe matim gabimin mesatar absolut.
+imputation_eval.csv: 5% of the known speeds that M2 could fill are hidden, filled by each
+method, and compared on the mean absolute error.
 """
 
 import numpy as np

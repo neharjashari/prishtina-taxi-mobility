@@ -67,8 +67,6 @@ CLUSTER_N_VEHICLES = 10
 # --- Validity and missing-value rules -------------------------------------------------
 
 SPEED_MAX_KMH = 200
-JUMP_KMH = 250
-JUMP_MIN_DIST_M = 100
 MAX_DROP_SHARE = 0.01
 # Vehicles whose exact duplicates (R08) are above MAX_DROP_SHARE and were reviewed by the
 # team: retransmitted records, so R08 may drop them. Every other vehicle and rule keeps
@@ -89,7 +87,7 @@ CRS_METRIC = "EPSG:32634"
 
 STOP_RADIUS_M = 100
 STOP_MIN_S = 300
-# (lat, lon), to be set with a cited source.
+# (lat, lon) of the centre of Prishtina, with its source.
 CITY_CENTER: tuple[float, float] | None = (42.67272, 21.16688)
 CITY_CENTER_SOURCE = (
     "GeoNames feature 786714 (Pristina), CC BY 4.0, https://www.geonames.org/786714"
@@ -105,6 +103,10 @@ TRIP_RULES = ("stop_gap", "di2")
 TRIP_RULE = "di2"
 DI2_BRIDGE_S = 60
 DI2_BRIDGE_COMPARE_S = [0, 10, 20, 30, 45, 60, 90, 120, 180, 300]
+# Di3 (passenger) is unusable for a vehicle when it is true for more than this share of
+# its observed ignition-off time: a passenger cannot sit in a switched-off taxi that long.
+# The fleet splits with nothing in between (at most 10.8% or at least 51.4%).
+DI3_STUCK_SHARE = 0.5
 TRIP_SHORT_POINTS = 3
 DISTANCE_BINS_M = [0, 2_000, 5_000, 10_000, 20_000, float("inf")]
 DISTANCE_BIN_LABELS = ["under 2 km", "2-5 km", "5-10 km", "10-20 km", "20 km or more"]

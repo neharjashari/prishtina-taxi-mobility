@@ -1,4 +1,4 @@
-"""Distancat, kalimi ne metra dhe qelizat e rrjetit"""
+"""Haversine distances, projection to metres, and grid cells."""
 
 import numpy as np
 from numpy.typing import ArrayLike

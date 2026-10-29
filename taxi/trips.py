@@ -678,7 +678,7 @@ def check_trips(
     points_m: dict[int, float],
     points_n: dict[int, tuple[int, int]],
 ) -> pd.DataFrame:
-    """The trip checks of the task, as a table. Raises PipelineError when one fails."""
+    """The trip checks as a table. Raises PipelineError when one fails."""
     rows = []
 
     def add(check: str, failing: int, total: int, note: str = "", status=None) -> None:

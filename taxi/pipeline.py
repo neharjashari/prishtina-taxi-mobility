@@ -126,13 +126,18 @@ def stage_function(name: str) -> Callable[[bool], None] | None:
 
 
 def run(stage: str | None, dev: bool) -> None:
-    """Run one stage, or every stage in order. A full run rewrites cleaning_log.csv from scratch."""
+    """Run one stage, or every stage in order.
+
+    A full run rewrites cleaning_log.csv and run_log.csv from scratch, so both describe one run.
+    """
     config.set_dev(dev)
     run_id = io.new_run_id()
     io.set_run_id(run_id)
     commit = git_commit()
     names = [stage] if stage else list(STAGES)
     io.clear_log(stage)
+    if stage is None:
+        config.run_log_csv().unlink(missing_ok=True)
     print(
         f"Run {run_id} ({'dev: vehicles ' + str(config.DEV_VEHICLES) if dev else 'full'}), commit {commit}"
     )

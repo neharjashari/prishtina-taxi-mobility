@@ -1,9 +1,10 @@
-"""Bashkimi i pikave me burimet e tjera: kufijte, rrjeti dhe kalendari.
-Burimet: kufijte e Kosoves dhe komunat nga Who's On First (HDX, CC BY), dhe
-data/external/calendar_2023.csv (festat zyrtare nga MPB).
+"""Joins the points with the other sources: boundaries, grid, and calendar.
 
-integration_summary.csv tregon per cdo burim celesin e bashkimit, sa rreshta u bashkuan,
-sa jo dhe pse.
+Sources: the Kosovo boundary and municipalities from Who's On First (HDX, CC BY), and
+data/external/calendar_2023.csv (official holidays from the Ministry of Internal Affairs).
+
+integration_summary.csv gives, per source, the join key, the rows matched and unmatched,
+and why.
 """
 
 from functools import cache
