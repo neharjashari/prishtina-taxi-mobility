@@ -36,7 +36,7 @@ trips_model,n_points_log,3,dropped,"serves no guiding question: point counts dep
 trips_model,start_dist_center_m_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.0,0.7417484543060456,0.276,avg_speed_kmh
 trips_model,end_dist_center_m_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.0,0.828293823970747,0.375,avg_speed_kmh
 trips_model,start_hour_sin,4,kept,"kept: informative, not redundant, serves a guiding question",0.0001,0.5118630203958721,0.151,start_hour_cos
-trips_model,start_hour_cos,4,kept,"kept: informative, not redundant, serves a guiding question",0.0001,0.41217588764486457,0.211,avg_speed_kmh
+trips_model,start_hour_cos,4,kept,"kept: informative, not redundant, serves a guiding question",0.0001,0.4121758876448646,0.211,avg_speed_kmh
 trips_model,di2_share,3,dropped,"serves no guiding question: with the di2 trip rule every trip is a taximeter episode, so the share only measures short signal dropouts",0.362,0.038030304970245225,0.231,duration_s_log
 trips_model,is_weekend,4,kept,"kept: informative, not redundant, serves a guiding question",0.7972,0.16165437100974148,0.173,avg_speed_kmh
 trips_model,is_holiday,2,dropped,near-constant 0/1 feature: p(1 - p) = 0.0057 < 0.05,0.9943,0.005680910529560521,,
