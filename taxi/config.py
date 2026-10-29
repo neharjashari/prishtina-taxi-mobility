@@ -88,9 +88,10 @@ CRS_METRIC = "EPSG:32634"
 STOP_RADIUS_M = 100
 STOP_MIN_S = 300
 # (lat, lon) of the centre of Prishtina, with its source.
-CITY_CENTER: tuple[float, float] | None = (42.67272, 21.16688)
+CITY_CENTER: tuple[float, float] | None = (42.66369, 21.16385)
 CITY_CENTER_SOURCE = (
-    "GeoNames feature 786714 (Pristina), CC BY 4.0, https://www.geonames.org/786714"
+    "Skanderbeg Square, OpenStreetMap node 4591682869 (OpenStreetMap contributors, ODbL), "
+    "https://www.openstreetmap.org/node/4591682869"
 )
 # Bins and buckets are left-closed, [a, b): use pd.cut(..., right=False).
 SPEED_BINS_KMH = [0, 5, 20, 50, 80, float("inf")]
