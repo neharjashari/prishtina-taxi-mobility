@@ -40,4 +40,3 @@ trips_model,start_hour_cos,4,kept,"kept: informative, not redundant, serves a gu
 trips_model,di2_share,3,dropped,"serves no guiding question: with the di2 trip rule every trip is a taximeter episode, so the share only measures short signal dropouts",0.362,0.038030304970245225,0.231,duration_s_log
 trips_model,is_weekend,4,kept,"kept: informative, not redundant, serves a guiding question",0.7972,0.16165437100974148,0.173,avg_speed_kmh
 trips_model,is_holiday,2,dropped,near-constant 0/1 feature: p(1 - p) = 0.0057 < 0.05,0.9943,0.005680910529560521,,
-trips_model,flag_short,3,dropped,serves no guiding question: quality flag for Phase II (trivial trips),0.93,0.06513532120112271,0.834,distance_m_log

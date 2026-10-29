@@ -7,7 +7,6 @@ from taxi import PipelineError, config, features, geo, io, transform
 
 STAGE = "trips"
 TRIPS_DATASET = "processed/trips"
-SHORT_FLAG_NOTE = "fewer than TRIP_SHORT_POINTS (3) points or distance_m = 0"
 
 TRIP_COLUMNS = [
     "trip_id",
@@ -29,7 +28,6 @@ TRIP_COLUMNS = [
     "tod_bucket",
     "is_weekend",
     "is_holiday",
-    "flag_short",
 ]
 
 POINT_ID_DICTIONARY = [
@@ -194,13 +192,6 @@ TRIPS_DICTIONARY = [
         "description": "The trip starts on an official holiday (Kurban Bajram, June 28).",
         "source": "is_holiday",
     },
-    {
-        "column": "flag_short",
-        "attribute_type": "nominal",
-        "values": "true / false",
-        "description": f"The trip has {SHORT_FLAG_NOTE}. Kept, for Phase II.",
-        "source": "n_points, distance_m",
-    },
 ]
 
 POINT_ID_CATALOG = [
@@ -296,12 +287,6 @@ TRIPS_CATALOG = [
         "formula": "tod_bucket of the start hour",
         "attribute_type": "ordinal, circular",
         "purpose": "Q1, Q4: when trips start",
-    },
-    {
-        "feature": "flag_short",
-        "formula": "n_points < 3 or distance_m = 0",
-        "attribute_type": "nominal (binary, asymmetric)",
-        "purpose": "Phase II: implausible or trivial trips",
     },
 ]
 
@@ -470,7 +455,6 @@ def trip_table(
             ),
             "is_weekend": df["is_weekend"].iloc[first].to_numpy(dtype=bool),
             "is_holiday": df["is_holiday"].iloc[first].to_numpy(dtype=bool),
-            "flag_short": (n_points < config.TRIP_SHORT_POINTS) | (distance == 0),
         }
     )
 
@@ -782,9 +766,6 @@ def _summary_row(label: str, rule: str, group: list[dict]) -> dict:
         "share_distance_in_trips": round(float(trips["distance_m"].sum()) / distance, 4)
         if distance
         else np.nan,
-        "share_flag_short": round(float(trips["flag_short"].mean()), 4)
-        if len(trips)
-        else np.nan,
         "straightness_median": round(float(trips["straightness"].median()), 3)
         if trips["straightness"].notna().any()
         else np.nan,
@@ -979,8 +960,7 @@ def run(dev: bool) -> None:
     )
     features.write_catalog(TRIPS_DATASET, TRIPS_CATALOG, owner=STAGE)
 
-    short = int(trips["flag_short"].sum())
     print(
         f"{len(ids)} vehicles: {sum(s['n_stops'] for s in stats):,} stops, {len(trips):,} trips "
-        f"(rule {config.TRIP_RULE}), {short:,} flagged short"
+        f"(rule {config.TRIP_RULE})"
     )

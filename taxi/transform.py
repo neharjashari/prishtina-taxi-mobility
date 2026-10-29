@@ -254,12 +254,6 @@ MODEL_SPEC: dict[str, dict[str, tuple[str, str, str, str]]] = {
             "1 when the trip starts on the official holiday (June 28).",
             "Q5: single-day case study",
         ),
-        "flag_short": (
-            "",
-            "nominal (binary, asymmetric)",
-            "1 when the trip has fewer than 3 points or zero distance.",
-            "none: quality flag for Phase II (trivial trips)",
-        ),
         "tod_night": (
             "",
             "nominal (binary, asymmetric)",
@@ -703,7 +697,6 @@ def build_trips_model(trips: pd.DataFrame, endpoints: pd.DataFrame) -> pd.DataFr
             "di2_share": ep["di2_share"].to_numpy(),
             "is_weekend": to_binary(trips["is_weekend"]).to_numpy(),
             "is_holiday": to_binary(trips["is_holiday"]).to_numpy(),
-            "flag_short": to_binary(trips["flag_short"]).to_numpy(),
         }
     )
     tm["trip_id"] = tm["trip_id"].astype("string")
