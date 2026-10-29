@@ -1,13 +1,13 @@
-"""Agregimi i pikave te pastra ne tri tabela: vehicle_day, cell_hour dhe fleet_hour.
+"""Aggregates of the clean points: vehicle_day, cell_hour, and fleet_hour.
 
-Kohezgjatjet, distancat dhe pjeset llogariten si shuma mbi hapat pa boshllak, dhe cdo
-shpejtesi mesatare eshte distanca e hapave ne levizje pjesetuar me kohen e tyre, vetem per
-hapat me sekonda ne te dy skajet (T2: koha pa sekonda e prish shpejtesine). Nje hap
-i takon dates, ores dhe qelizes se pikes ku fillon.
+Durations, distances, and shares are sums over steps without a gap. Every average speed is
+the distance of the moving steps over their time, using only steps with seconds at both
+ends: without seconds the step time, and so the speed, is wrong. A step belongs to the
+date, hour, and cell of the point it starts at.
 
-aggregation_summary.csv (T7) krahason numrin e rreshtave dhe koeficientin e variacionit
-te shpejtesise ne nivel pike, qelize-ore dhe taksi-dite. F7 tregon sa taksi jane aktive ne
-cdo ore te dites, me kufijte e TOD_BUCKETS.
+aggregation_summary.csv (T7) compares the row count and the coefficient of variation of
+speed at point, cell-hour, and vehicle-day level. F7 shows how many taxis are active in
+each hour of the day, with the TOD_BUCKETS edges.
 """
 
 import numpy as np
@@ -62,7 +62,7 @@ VEHICLE_DAY_DICTIONARY = [
         "column": "avg_speed_moving_kmh",
         "unit": "km/h",
         "attribute_type": "ratio",
-        "description": "Distance over time of the moving steps with seconds at both ends (T2). NA without such steps.",
+        "description": "Distance over time of the moving steps with seconds at both ends. NA without such steps.",
     },
     {
         "column": "max_speed_kmh",
@@ -151,7 +151,7 @@ CELL_HOUR_DICTIONARY = [
         "column": "avg_speed_moving_kmh",
         "unit": "km/h",
         "attribute_type": "ratio",
-        "description": "Distance over time of those moving steps with seconds at both ends (T2). NA without such steps.",
+        "description": "Distance over time of those moving steps with seconds at both ends. NA without such steps.",
     },
     {
         "column": "municipality",
@@ -185,7 +185,7 @@ FLEET_HOUR_DICTIONARY = [
         "column": "avg_speed_moving_kmh",
         "unit": "km/h",
         "attribute_type": "ratio",
-        "description": "Distance over time of the moving steps with seconds at both ends (T2). NA without such steps.",
+        "description": "Distance over time of the moving steps with seconds at both ends. NA without such steps.",
     },
     {
         "column": "di2_share",

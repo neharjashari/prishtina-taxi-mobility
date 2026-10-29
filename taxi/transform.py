@@ -579,9 +579,7 @@ def read_point_summaries(trip_ids: pd.Index) -> tuple[pd.DataFrame, dict]:
         ignition_off = df["di1"].eq(False)
         ignition_off_known = ignition_off & df["di3"].notna()
         off_h = float(step_h[ignition_off].sum())
-        di3_off_h = float(
-            step_h[ignition_off_known & df["di3"].fillna(False)].sum()
-        )
+        di3_off_h = float(step_h[ignition_off_known & df["di3"].fillna(False)].sum())
         di3_off_share = di3_off_h / off_h if off_h > 0 else np.nan
         reliability.append(
             {

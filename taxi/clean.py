@@ -1,13 +1,11 @@
-"""Pastrimi i pikave: nga points ne points_clean.
+"""Cleaning: interim points to points_clean.
 
-Per cdo taksi zbatohen rregullat e validitetit dhe te vlerave qe mungojne.
-Cdo rregull shenohet ne cleaning_log.csv.
+Per vehicle, the validity and missing-value rules run in order, and each is logged in
+cleaning_log.csv. Rows without seconds (vehicles 1 and 100) are not dropped as
+duplicates, and the steps that touch them get no implied speed.
 
-Rreshtat pa sekonda (taksite 1 dhe 100) nuk fshihen si duplikate, dhe hapat qe i prekin
-nuk kane shpejtesi te llogaritur.
-
-Figurat: F4 harta e pikave, F5 shpejtesia e raportuar kundrejt asaj te llogaritur
-(kontrolli i njesise km/h), F6 sa rreshta mbeten pas cdo rregulli.
+Figures: F4 map of the points, F5 reported against implied speed (the km/h check),
+F6 rows left after each rule.
 """
 
 import matplotlib.colors as mcolors
@@ -188,7 +186,7 @@ def clean_vehicle(vehicle_id: int) -> tuple[pd.DataFrame, pd.Series, int]:
         over = n > config.MAX_DROP_SHARE * raw_rows
         reviewed = rule_id == "R08" and vehicle_id in config.R08_REVIEWED_VEHICLES
         if over and reviewed:
-            note += "; above MAX_DROP_SHARE, rows reviewed (T2b)"
+            note += "; above MAX_DROP_SHARE, reviewed: retransmitted records"
         log(rule_id, "drop", n, note)
         if over and not reviewed:
             raise PipelineError(
