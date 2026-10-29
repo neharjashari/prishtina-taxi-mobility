@@ -32,6 +32,7 @@ INTERPRETABILITY = {
         "night_trip_share",
         "is_weekend",
         "is_holiday",
+        "di3_reliable",
         "di3_share",
         "observed_h",
         "n_gaps",
@@ -56,7 +57,7 @@ INTERPRETABILITY = {
     ],
 }
 UNRELIABLE = {
-    "di3_share": "unreliable: Di3 (passenger) is stuck true in 25 of the 83 vehicles",
+    "di3_share": "unreliable: di3_share is NA for vehicles where Di3 is stuck or reliability is unknown",
 }
 
 
