@@ -1,0 +1,34 @@
+variable,method,bin,left,right,unit,count,share,observed_h,observed_share
+trip distance_m,equal_width,"[0.00, 51.67) km",0.0,51671.3,m,179430,0.9973,,
+trip distance_m,equal_width,"[51.67, 103.34) km",51671.3,103342.6,m,419,0.0023,,
+trip distance_m,equal_width,"[103.34, 155.01) km",103342.6,155013.9,m,64,0.0004,,
+trip distance_m,equal_width,"[155.01, 206.69) km",155013.9,206685.2,m,6,0.0,,
+trip distance_m,equal_width,"[206.69, 258.36) km",206685.2,258356.5,m,4,0.0,,
+trip distance_m,equal_frequency,"[0.00, 0.96) km",0.0,963.653,m,35985,0.2,,
+trip distance_m,equal_frequency,"[0.96, 1.82) km",963.653,1816.564,m,35984,0.2,,
+trip distance_m,equal_frequency,"[1.82, 2.62) km",1816.564,2615.462,m,35985,0.2,,
+trip distance_m,equal_frequency,"[2.62, 4.03) km",2615.462,4029.069,m,35984,0.2,,
+trip distance_m,equal_frequency,"[4.03, 258.36) km",4029.069,258356.5,m,35985,0.2,,
+trip distance_m,domain,under 2 km,0.0,2000.0,m,81339,0.4521,,
+trip distance_m,domain,2-5 km,2000.0,5000.0,m,74367,0.4133,,
+trip distance_m,domain,5-10 km,5000.0,10000.0,m,17192,0.0956,,
+trip distance_m,domain,10-20 km,10000.0,20000.0,m,4975,0.0277,,
+trip distance_m,domain,20 km or more,20000.0,inf,m,2050,0.0114,,
+speed_bin,domain,stopped,0.0,5.0,km/h,10852768,0.3806,107395.27,0.7181
+speed_bin,domain,slow,5.0,20.0,km/h,7794552,0.2733,17858.76,0.1194
+speed_bin,domain,urban,20.0,50.0,km/h,7820811,0.2743,18949.55,0.1267
+speed_bin,domain,fast,50.0,80.0,km/h,1500059,0.0526,3918.34,0.0262
+speed_bin,domain,highway,80.0,inf,km/h,548722,0.0192,1437.22,0.0096
+tod_bucket,domain,night,0.0,6.0,local hour,3383782,0.1187,36587.41,0.2446
+tod_bucket,domain,morning,6.0,10.0,local hour,5701641,0.1999,25068.65,0.1676
+tod_bucket,domain,midday,10.0,15.0,local hour,8277291,0.2903,31567.44,0.2111
+tod_bucket,domain,afternoon,15.0,19.0,local hour,6133423,0.2151,25287.04,0.1691
+tod_bucket,domain,evening,19.0,24.0,local hour,5020775,0.1761,31048.58,0.2076
+compass8 (moving points),domain,N,337.5,22.5,degrees,2466543,0.1396,5953.55,0.1412
+compass8 (moving points),domain,NE,22.5,67.5,degrees,2287594,0.1295,5521.18,0.1309
+compass8 (moving points),domain,E,67.5,112.5,degrees,2301764,0.1303,5540.71,0.1314
+compass8 (moving points),domain,SE,112.5,157.5,degrees,1868593,0.1058,4377.35,0.1038
+compass8 (moving points),domain,S,157.5,202.5,degrees,2373329,0.1344,5648.14,0.134
+compass8 (moving points),domain,SW,202.5,247.5,degrees,2267744,0.1284,5438.08,0.129
+compass8 (moving points),domain,W,247.5,292.5,degrees,2298635,0.1301,5487.64,0.1302
+compass8 (moving points),domain,NW,292.5,337.5,degrees,1799942,0.1019,4197.21,0.0995

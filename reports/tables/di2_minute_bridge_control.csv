@@ -1,0 +1,4 @@
+vehicle_id,bridge_s,interruptions,bridged_exact,agree_less_than,agree_at_most,missed_less_than,wrongly_bridged_at_most,share_agree_less_than,share_agree_at_most
+1,60,4850,3244,4545,4796,305,54,0.9371,0.9889
+100,60,11513,9375,10830,11437,683,76,0.9407,0.9934
+all,60,16363,12619,15375,16233,988,130,0.9396,0.9921

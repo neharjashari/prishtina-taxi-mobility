@@ -1,0 +1,11 @@
+table,feature,n,skew_raw,skew_log1p,kept,column
+trips_model,distance_m,179923,11.062,-2.212,log1p,distance_m_log
+trips_model,duration_s,179923,4.216,-1.864,log1p,duration_s_log
+trips_model,straight_m,179923,11.221,-2.094,log1p,straight_m_log
+trips_model,n_points,179923,4.005,-1.177,log1p,n_points_log
+trips_model,start_dist_center_m,179923,15.653,0.085,log1p,start_dist_center_m_log
+trips_model,end_dist_center_m,179923,13.203,0.156,log1p,end_dist_center_m_log
+vehicle_day_model,km,6519,0.399,-2.09,raw,km
+vehicle_day_model,n_trips,6157,-0.083,-1.62,raw,n_trips
+vehicle_day_model,trip_median_distance_m,5355,22.326,-5.677,log1p,trip_median_distance_m_log
+vehicle_day_model,trip_median_duration_s,5355,9.682,-4.12,log1p,trip_median_duration_s_log

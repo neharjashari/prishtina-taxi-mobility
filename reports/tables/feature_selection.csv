@@ -1,0 +1,43 @@
+table,feature,step,decision,reason,top_value_share,variance_unscaled,max_abs_r,most_correlated_with
+vehicle_day_model,vehicle_id,1,dropped,"identifier or timestamp, not a feature",,,,
+vehicle_day_model,date_local,1,dropped,"identifier or timestamp, not a feature",,,,
+vehicle_day_model,n_points,3,dropped,"serves no guiding question: point counts depend on the reporting rate, not on time",0.0288,4782563.141923895,0.979,moving_h
+vehicle_day_model,observed_h,3,dropped,serves no guiding question: coverage of the day (about 24 h unless the device was off),0.0135,13.469089623183747,0.832,n_gaps
+vehicle_day_model,moving_h,4,dropped,"redundant with km (Pearson +0.93, Spearman +0.94); km is easier to interpret",0.0738,12.03127915190936,0.979,n_points
+vehicle_day_model,km,4,kept,"kept: informative, not redundant, serves a guiding question",0.0598,13106.38224235683,0.937,moving_h
+vehicle_day_model,avg_speed_moving_kmh,4,kept,"kept: informative, not redundant, serves a guiding question",0.0003,66.50797809568304,0.732,max_speed_kmh
+vehicle_day_model,max_speed_kmh,4,kept,"kept: informative, not redundant, serves a guiding question",0.0684,1441.0133126148705,0.758,km
+vehicle_day_model,di1_share,4,dropped,"redundant with moving_share (Pearson +0.98, Spearman +0.98); moving_share is easier to interpret",0.0592,0.059979081053937934,0.976,moving_share
+vehicle_day_model,di2_share,4,kept,"kept: informative, not redundant, serves a guiding question",0.1762,0.013435388541158251,0.83,moving_share
+vehicle_day_model,n_gaps,3,dropped,serves no guiding question: data-quality indicator,0.9014,12.592973949605954,0.832,observed_h
+vehicle_day_model,di3_share,2,dropped,unreliable: di3_share is NA for vehicles where Di3 is stuck or reliability is unknown,0.1667,0.012463314828850389,,
+vehicle_day_model,di3_reliable,3,dropped,serves no guiding question: data-quality flag for interpreting di3_share,0.6865,0.21523454126951552,0.134,di2_share
+vehicle_day_model,moving_share,4,kept,"kept: informative, not redundant, serves a guiding question",0.0718,0.024257202079716215,0.976,di1_share
+vehicle_day_model,n_trips,4,kept,"kept: informative, not redundant, serves a guiding question",0.1303,304.626142598751,0.896,n_points
+vehicle_day_model,trip_median_distance_m_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.0028,0.4270606585880025,0.893,trip_median_duration_s_log
+vehicle_day_model,trip_median_duration_s_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.005,0.23629735142841846,0.893,trip_median_distance_m_log
+vehicle_day_model,night_trip_share,4,kept,"kept: informative, not redundant, serves a guiding question",0.318,0.022045344176232187,0.392,km
+vehicle_day_model,is_weekend,4,kept,"kept: informative, not redundant, serves a guiding question",0.7161,0.2033177542483167,0.339,n_points
+vehicle_day_model,is_holiday,2,dropped,near-constant 0/1 feature: p(1 - p) = 0.0106 < 0.05,0.9893,0.010622541950310755,,
+trips_model,trip_id,1,dropped,"identifier or timestamp, not a feature",,,,
+trips_model,vehicle_id,1,dropped,"identifier or timestamp, not a feature",,,,
+trips_model,tod_night,4,dropped,"one-hot column of tod_bucket at the start: the same start time as start_hour_sin and start_hour_cos, in 5 bins; the cyclic pair keeps the order and puts 23:59 next to 00:00. Stays in the table for methods on categories",,,,
+trips_model,tod_morning,4,dropped,"one-hot column of tod_bucket at the start: the same start time as start_hour_sin and start_hour_cos, in 5 bins; the cyclic pair keeps the order and puts 23:59 next to 00:00. Stays in the table for methods on categories",,,,
+trips_model,tod_midday,4,dropped,"one-hot column of tod_bucket at the start: the same start time as start_hour_sin and start_hour_cos, in 5 bins; the cyclic pair keeps the order and puts 23:59 next to 00:00. Stays in the table for methods on categories",,,,
+trips_model,tod_afternoon,4,dropped,"one-hot column of tod_bucket at the start: the same start time as start_hour_sin and start_hour_cos, in 5 bins; the cyclic pair keeps the order and puts 23:59 next to 00:00. Stays in the table for methods on categories",,,,
+trips_model,tod_evening,4,dropped,"one-hot column of tod_bucket at the start: the same start time as start_hour_sin and start_hour_cos, in 5 bins; the cyclic pair keeps the order and puts 23:59 next to 00:00. Stays in the table for methods on categories",,,,
+trips_model,distance_m_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.0483,4.482116547504092,0.982,straight_m_log
+trips_model,duration_s_log,4,dropped,"redundant with distance_m_log (Pearson +0.92, Spearman +0.89); distance_m_log is easier to interpret",0.0181,2.0095983792903476,0.967,n_points_log
+trips_model,straight_m_log,4,dropped,"redundant with distance_m_log (Pearson +0.98, Spearman +0.94); distance_m_log is easier to interpret",0.0483,4.130339140674515,0.982,distance_m_log
+trips_model,straightness,4,kept,"kept: informative, not redundant, serves a guiding question",0.0237,0.030928586152086032,0.39,duration_s_log
+trips_model,avg_speed_kmh,4,kept,"kept: informative, not redundant, serves a guiding question",0.0483,134.7720310235423,0.746,max_speed_kmh
+trips_model,max_speed_kmh,4,kept,"kept: informative, not redundant, serves a guiding question",0.0523,545.118183570088,0.766,distance_m_log
+trips_model,n_points_log,3,dropped,"serves no guiding question: point counts depend on the reporting rate, not on time",0.0531,0.9898923907974242,0.967,duration_s_log
+trips_model,start_dist_center_m_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.0,0.7417484543060456,0.276,avg_speed_kmh
+trips_model,end_dist_center_m_log,4,kept,"kept: informative, not redundant, serves a guiding question",0.0,0.828293823970747,0.375,avg_speed_kmh
+trips_model,start_hour_sin,4,kept,"kept: informative, not redundant, serves a guiding question",0.0001,0.5118630203958721,0.151,start_hour_cos
+trips_model,start_hour_cos,4,kept,"kept: informative, not redundant, serves a guiding question",0.0001,0.41217588764486457,0.211,avg_speed_kmh
+trips_model,di2_share,3,dropped,"serves no guiding question: with the di2 trip rule every trip is a taximeter episode, so the share only measures short signal dropouts",0.362,0.038030304970245225,0.231,duration_s_log
+trips_model,is_weekend,4,kept,"kept: informative, not redundant, serves a guiding question",0.7972,0.16165437100974148,0.173,avg_speed_kmh
+trips_model,is_holiday,2,dropped,near-constant 0/1 feature: p(1 - p) = 0.0057 < 0.05,0.9943,0.005680910529560521,,
+trips_model,flag_short,3,dropped,serves no guiding question: quality flag for Phase II (trivial trips),0.93,0.06513532120112271,0.834,distance_m_log
