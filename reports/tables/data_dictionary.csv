@@ -18,13 +18,13 @@ processed/cell_hour,n_points,int32,,ratio,,Points in the cell and hour.,,aggrega
 processed/cell_hour,n_vehicles,int16,,ratio,,Distinct vehicles with a point in the cell and hour.,,aggregate
 processed/cell_hour,observed_min,float32,min,ratio,,Sum of dt_s over steps without a gap that start in the cell and hour.,,aggregate
 processed/cell_hour,moving_min,float32,min,ratio,,The same over moving steps.,,aggregate
-processed/cell_hour,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of those moving steps with seconds at both ends (T2). NA without such steps.,,aggregate
+processed/cell_hour,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of those moving steps with seconds at both ends. NA without such steps.,,aggregate
 processed/cell_hour,municipality,category,,nominal,,Municipality with the most points of the cell over the whole run; NA outside Kosovo.,,aggregate
 processed/fleet_hour,hour_start_local,"datetime64[ns, Europe/Skopje]",,interval,,Start of the local hour; every hour of the study window.,,aggregate
 processed/fleet_hour,n_vehicles_active,int16,,ratio,,Vehicles with at least one point in the hour.,,aggregate
 processed/fleet_hour,n_vehicles_moving,int16,,ratio,,Vehicles with at least one moving step without a gap in the hour.,,aggregate
 processed/fleet_hour,n_points,int32,,ratio,,Points in the hour.,,aggregate
-processed/fleet_hour,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of the moving steps with seconds at both ends (T2). NA without such steps.,,aggregate
+processed/fleet_hour,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of the moving steps with seconds at both ends. NA without such steps.,,aggregate
 processed/fleet_hour,di2_share,float32,,ratio,0 to 1,Share of observed time with di2 (taximeter) true; steps with di2 NA left out. NA without observed time.,,aggregate
 processed/model/trips_model,trip_id,string,,nominal,,"Trip id, as in processed/trips.",processed/trips,transform
 processed/model/trips_model,vehicle_id,int16,,nominal,,Taxi id.,processed/trips,transform
@@ -42,7 +42,6 @@ processed/model/trips_model,start_hour_cos,float64,,interval,,cos(2 pi h / 24) o
 processed/model/trips_model,di2_share,float64,,ratio,,"Share of the trip's time (its steps with a known di2) with the raw taximeter signal on; NA when unknown. Under the di2 rule every trip is a taximeter episode, so this only measures the signal's short dropouts; under stop_gap it is the paid share of the trip.",processed/trips,transform
 processed/model/trips_model,is_weekend,int8,,"nominal (binary, symmetric)",,1 when the trip starts on a Saturday or Sunday.,processed/trips,transform
 processed/model/trips_model,is_holiday,int8,,"nominal (binary, asymmetric)",,1 when the trip starts on the official holiday (June 28).,processed/trips,transform
-processed/model/trips_model,flag_short,int8,,"nominal (binary, asymmetric)",,1 when the trip has fewer than 3 points or zero distance.,processed/trips,transform
 processed/model/trips_model,tod_night,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is night.,processed/trips,transform
 processed/model/trips_model,tod_morning,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is morning.,processed/trips,transform
 processed/model/trips_model,tod_midday,int8,,"nominal (binary, asymmetric)",,1 when tod_bucket at the start is midday.,processed/trips,transform
@@ -62,7 +61,6 @@ processed/model/trips_model,start_hour_cos_z,float32,standard deviations,interva
 processed/model/trips_model,di2_share_z,float32,standard deviations,interval,,z-score of di2_share: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
 processed/model/trips_model,is_weekend_z,float32,standard deviations,interval,,z-score of is_weekend: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
 processed/model/trips_model,is_holiday_z,float32,standard deviations,interval,,z-score of is_holiday: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
-processed/model/trips_model,flag_short_z,float32,standard deviations,interval,,z-score of flag_short: (x - mean) / std over the whole table (scaling_params.csv).,processed/trips,transform
 processed/model/vehicle_day_model,vehicle_id,int16,,nominal,,Taxi id.,"processed/vehicle_day, processed/trips",transform
 processed/model/vehicle_day_model,date_local,object,,interval,,Local date.,"processed/vehicle_day, processed/trips",transform
 processed/model/vehicle_day_model,n_points,float64,,ratio,,Points of the vehicle-day (vehicle_day).,"processed/vehicle_day, processed/trips",transform
@@ -142,7 +140,7 @@ processed/points,compass8,category,,"nominal, circular","N, NE, E, SE, S, SW, W,
 processed/points,speed_bin,category,,ordinal,"stopped [0, 5), slow [5, 20), urban [20, 50), fast [50, 80), highway [80, inf) km/h","Domain-based speed bin (SPEED_BINS_KMH, left-closed). 'stopped' ends at V_MOVE_KMH, so it is exactly the points with is_moving false. NA when speed_kmh is NA.",speed_kmh,features
 processed/points,x_m,float64,m (EPSG:32634),interval,"easting, WGS 84 / UTM zone 34N","Projected x coordinate, so distances can be measured in metres.","lon, lat",features
 processed/points,y_m,float64,m (EPSG:32634),interval,"northing, WGS 84 / UTM zone 34N",Projected y coordinate.,"lon, lat",features
-processed/points,dist_center_m,float32,m,ratio,0 or more,"Haversine distance to CITY_CENTER (42.66369, 21.16385): Skanderbeg Square, OpenStreetMap node 4591682869, https://www.openstreetmap.org/node/4591682869.","lat, lon, CITY_CENTER",features
+processed/points,dist_center_m,float32,m,ratio,0 or more,"Haversine distance to CITY_CENTER (42.66369, 21.16385): Skanderbeg Square, OpenStreetMap node 4591682869 (OpenStreetMap contributors, ODbL), https://www.openstreetmap.org/node/4591682869.","lat, lon, CITY_CENTER",features
 processed/points,hour_sin,float32,,interval,-1 to 1,"sin(2 pi (hour + minute / 60) / 24): the clock time as a point on a circle, with hour_cos, so that 23:59 lies next to 00:00.",ts_local,features
 processed/points,hour_cos,float32,,interval,-1 to 1,cos(2 pi (hour + minute / 60) / 24).,ts_local,features
 processed/points,heading_sin,float32,,interval,"-1 to 1, NA","sin(heading in radians): the east component of the direction of travel, with heading_cos (the north component), so that 359 degrees lies next to 1 degree.",heading_deg,features
@@ -193,7 +191,6 @@ processed/trips,end_municipality,category,,nominal,municipality names; NA outsid
 processed/trips,tod_bucket,category,,"ordinal, circular","night, morning, midday, afternoon, evening",Time-of-day bucket of the local start hour.,hour,trips
 processed/trips,is_weekend,bool,,nominal,true / false,The trip starts on a Saturday or Sunday.,is_weekend,trips
 processed/trips,is_holiday,bool,,nominal,true / false,"The trip starts on an official holiday (Kurban Bajram, June 28).",is_holiday,trips
-processed/trips,flag_short,bool,,nominal,true / false,"The trip has fewer than TRIP_SHORT_POINTS (3) points or distance_m = 0. Kept, for Phase II.","n_points, distance_m",trips
 processed/vehicle_day,vehicle_id,int16,,nominal,,Vehicle.,,aggregate
 processed/vehicle_day,date_local,object,,interval,,Local date. Days without data have no row (M6).,,aggregate
 processed/vehicle_day,n_points,int32,,ratio,,Points of the vehicle on the day.,,aggregate
@@ -202,7 +199,7 @@ processed/vehicle_day,last_ts_local,"datetime64[ns, Europe/Skopje]",,interval,,L
 processed/vehicle_day,observed_h,float32,h,ratio,,Sum of dt_s over the day's steps without a gap.,,aggregate
 processed/vehicle_day,moving_h,float32,h,ratio,,Sum of dt_s over the day's moving steps (speed_kmh >= V_MOVE_KMH) without a gap.,,aggregate
 processed/vehicle_day,km,float32,km,ratio,,"Sum of dist_m over the day's steps without a gap, in km.",,aggregate
-processed/vehicle_day,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of the moving steps with seconds at both ends (T2). NA without such steps.,,aggregate
+processed/vehicle_day,avg_speed_moving_kmh,float32,km/h,ratio,,Distance over time of the moving steps with seconds at both ends. NA without such steps.,,aggregate
 processed/vehicle_day,max_speed_kmh,float32,km/h,ratio,,Highest speed_kmh of the day.,,aggregate
 processed/vehicle_day,di1_share,float32,,ratio,0 to 1,Share of observed time with di1 (ignition) true; steps with di1 NA left out.,,aggregate
 processed/vehicle_day,di2_share,float32,,ratio,0 to 1,Share of observed time with di2 (taximeter) true; steps with di2 NA left out.,,aggregate

@@ -21,3 +21,5 @@ kaggle.json
 
 # OS
 .DS_Store
+pytje-*.txt
+/reports/phase-1

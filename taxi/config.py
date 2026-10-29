@@ -88,9 +88,10 @@ CRS_METRIC = "EPSG:32634"
 STOP_RADIUS_M = 100
 STOP_MIN_S = 300
 # (lat, lon) of the centre of Prishtina, with its source.
-CITY_CENTER: tuple[float, float] | None = (42.67272, 21.16688)
+CITY_CENTER: tuple[float, float] | None = (42.66369, 21.16385)
 CITY_CENTER_SOURCE = (
-    "GeoNames feature 786714 (Pristina), CC BY 4.0, https://www.geonames.org/786714"
+    "Skanderbeg Square, OpenStreetMap node 4591682869 (OpenStreetMap contributors, ODbL), "
+    "https://www.openstreetmap.org/node/4591682869"
 )
 # Bins and buckets are left-closed, [a, b): use pd.cut(..., right=False).
 SPEED_BINS_KMH = [0, 5, 20, 50, 80, float("inf")]
@@ -107,7 +108,6 @@ DI2_BRIDGE_COMPARE_S = [0, 10, 20, 30, 45, 60, 90, 120, 180, 300]
 # its observed ignition-off time: a passenger cannot sit in a switched-off taxi that long.
 # The fleet splits with nothing in between (at most 10.8% or at least 51.4%).
 DI3_STUCK_SHARE = 0.5
-TRIP_SHORT_POINTS = 3
 DISTANCE_BINS_M = [0, 2_000, 5_000, 10_000, 20_000, float("inf")]
 DISTANCE_BIN_LABELS = ["under 2 km", "2-5 km", "5-10 km", "10-20 km", "20 km or more"]
 N_COMPARE_BINS = 5

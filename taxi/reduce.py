@@ -52,7 +52,6 @@ INTERPRETABILITY = {
         "di2_share",
         "is_weekend",
         "is_holiday",
-        "flag_short",
         "n_points",
     ],
 }

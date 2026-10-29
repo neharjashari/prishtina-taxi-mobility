@@ -29,7 +29,6 @@ end_cell,processed/trips,cell_id of the last point,,nominal,Q4: destination area
 start_municipality,processed/trips,municipality of the first point,,nominal,Q4: origin municipality,trips
 end_municipality,processed/trips,municipality of the last point,,nominal,Q4: destination municipality,trips
 tod_bucket,processed/trips,tod_bucket of the start hour,,"ordinal, circular","Q1, Q4: when trips start",trips
-flag_short,processed/trips,n_points < 3 or distance_m = 0,,"nominal (binary, asymmetric)",Phase II: implausible or trivial trips,trips
 distance_m_log,processed/model/trips_model,log1p(distance_m),log1p(m),interval,Q4: trip distance,transform
 duration_s_log,processed/model/trips_model,log1p(duration_s),log1p(s),interval,Q4: trip duration,transform
 straight_m_log,processed/model/trips_model,log1p(straight_m),log1p(m),interval,Q4: reach of a trip,transform
@@ -44,7 +43,6 @@ start_hour_cos,processed/model/trips_model,cos(2 pi h / 24) of the local start t
 di2_share,processed/model/trips_model,"Share of the trip's time (its steps with a known di2) with the raw taximeter signal on; NA when unknown. Under the di2 rule every trip is a taximeter episode, so this only measures the signal's short dropouts; under stop_gap it is the paid share of the trip.",,ratio,"Q3, Q4: paid share of the trip (stop_gap rule only)",transform
 is_weekend,processed/model/trips_model,1 when the trip starts on a Saturday or Sunday.,,"nominal (binary, symmetric)",Q5: weekends vs working days,transform
 is_holiday,processed/model/trips_model,1 when the trip starts on the official holiday (June 28).,,"nominal (binary, asymmetric)",Q5: single-day case study,transform
-flag_short,processed/model/trips_model,1 when the trip has fewer than 3 points or zero distance.,,"nominal (binary, asymmetric)",none: quality flag for Phase II (trivial trips),transform
 tod_night,processed/model/trips_model,1 when tod_bucket at the start is night.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
 tod_morning,processed/model/trips_model,1 when tod_bucket at the start is morning.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
 tod_midday,processed/model/trips_model,1 when tod_bucket at the start is midday.,,"nominal (binary, asymmetric)",Q1: when trips start,transform
