@@ -107,4 +107,3 @@ Lint and format: `ruff check . && ruff format .`
 | `data/interim/`, `data/processed/`, `data/export/` | pipeline outputs (not in git) |
 | `data/sample/points_sample.csv` | small stratified sample for reviewers |
 | `reports/tables/`, `reports/figures/` | tables and figures used in the report |
-| `reports/phase-1/` | Phase I report and slides |
