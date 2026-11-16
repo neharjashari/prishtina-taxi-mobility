@@ -1,8 +1,10 @@
-"""Aggregates of the clean points: vehicle_day, cell_hour, and fleet_hour.
+"""Aggregates of the screened points: vehicle_day, cell_hour, and fleet_hour.
 
 Durations, distances, and shares are sums over steps without a gap. Every average speed is
 the distance of the moving steps over their time, using only steps with seconds at both
-ends: without seconds the step time, and so the speed, is wrong. A step belongs to the
+ends: without seconds the step time, and so the speed, is wrong. A step whose dist_m the
+outlier rules set to NA counts in the observed time but not in distances and average
+speeds: its time is known, its movement is not. A step belongs to the
 date, hour, and cell of the point it starts at.
 
 aggregation_summary.csv (T7) compares the row count and the coefficient of variation of
@@ -56,13 +58,14 @@ VEHICLE_DAY_DICTIONARY = [
         "column": "km",
         "unit": "km",
         "attribute_type": "ratio",
-        "description": "Sum of dist_m over the day's steps without a gap, in km.",
+        "description": "Sum of dist_m over the day's steps without a gap and with a known "
+        "dist_m, in km.",
     },
     {
         "column": "avg_speed_moving_kmh",
         "unit": "km/h",
         "attribute_type": "ratio",
-        "description": "Distance over time of the moving steps with seconds at both ends. NA without such steps.",
+        "description": "Distance over time of the moving steps with seconds at both ends and a known dist_m. NA without such steps.",
     },
     {
         "column": "max_speed_kmh",
@@ -151,7 +154,7 @@ CELL_HOUR_DICTIONARY = [
         "column": "avg_speed_moving_kmh",
         "unit": "km/h",
         "attribute_type": "ratio",
-        "description": "Distance over time of those moving steps with seconds at both ends. NA without such steps.",
+        "description": "Distance over time of those moving steps with seconds at both ends and a known dist_m. NA without such steps.",
     },
     {
         "column": "municipality",
@@ -185,7 +188,7 @@ FLEET_HOUR_DICTIONARY = [
         "column": "avg_speed_moving_kmh",
         "unit": "km/h",
         "attribute_type": "ratio",
-        "description": "Distance over time of the moving steps with seconds at both ends. NA without such steps.",
+        "description": "Distance over time of the moving steps with seconds at both ends and a known dist_m. NA without such steps.",
     },
     {
         "column": "di2_share",
@@ -200,6 +203,7 @@ FLEET_HOUR_DICTIONARY = [
 def steps(df: pd.DataFrame) -> pd.DataFrame:
     dt = df["dt_s"].astype("float64")
     dist = df["dist_m"].astype("float64")
+    known = dist.notna()
     observed = dt.notna() & ~df["gap_after"]
     moving = observed & (df["speed_kmh"] >= config.V_MOVE_KMH)
     seconds = df["ts_has_seconds"] & df["ts_has_seconds"].shift(-1, fill_value=True)
@@ -207,10 +211,10 @@ def steps(df: pd.DataFrame) -> pd.DataFrame:
         {
             "t": dt.where(observed, 0),
             "t_moving": dt.where(moving, 0),
-            "d": dist.where(observed, 0),
-            "d_moving": dist.where(moving, 0),
-            "t_speed": dt.where(moving & seconds, 0),
-            "d_speed": dist.where(moving & seconds, 0),
+            "d": dist.where(observed & known, 0),
+            "d_moving": dist.where(moving & known, 0),
+            "t_speed": dt.where(moving & seconds & known, 0),
+            "d_speed": dist.where(moving & seconds & known, 0),
             "moving": moving,
         }
     )
@@ -354,15 +358,15 @@ def table_row(level: str, table: pd.DataFrame) -> dict:
 
 
 def run(dev: bool) -> None:
-    ids = io.vehicle_ids("clean")
+    ids = io.vehicle_ids("screened")
     if not ids:
-        raise PipelineError("No clean points: run the clean stage first.")
+        raise PipelineError("No screened points: run the screen stage first.")
 
     days, cells, hours = [], [], []
     muni_counts = []
     point_n, point_sum, point_sq, step_km = 0, 0.0, 0.0, 0.0
     for v in ids:
-        df = io.read_points("clean", [v])
+        df = io.read_points("screened", [v])
         s = steps(df)
         days.append(vehicle_day(df, s))
         cells.append(cell_hour_part(df, s))
@@ -386,7 +390,7 @@ def run(dev: bool) -> None:
 
     if not np.isclose(vd["km"].astype("float64").sum(), step_km, rtol=1e-5):
         raise PipelineError(
-            f"vehicle_day km {vd['km'].sum():,.1f} != points_clean km {step_km:,.1f}"
+            f"vehicle_day km {vd['km'].sum():,.1f} != screened points km {step_km:,.1f}"
         )
     expected_hours = (config.STUDY_END - config.STUDY_START).days * 24
     if len(fh) != expected_hours:
