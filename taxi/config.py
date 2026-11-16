@@ -133,6 +133,10 @@ ACCEL_MAX_MS2 = 8.0
 # is GPS drift, not driving. 400 s covers the 6-minute timer of a parked device.
 DRIFT_MIN_M = 100
 DRIFT_MAX_DT_S = 400
+# What the screen stage does with each point rule: "drop" the point, "set_na" the values
+# the rule found wrong, or "flag" (count only). Proposed values, pending the validation
+# of the rules (REVIEW_MIN_PRECISION) and team agreement.
+OUTLIER_ACTIONS = {"O01": "drop", "O02": "set_na", "O03": "set_na", "O04": "set_na"}
 # Validation of the rules: a review sample per rule, labelled by every reviewer on a
 # shared calibration set and by one reviewer each on the rest.
 REVIEW_N_PER_RULE = 50
