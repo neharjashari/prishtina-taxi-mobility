@@ -233,7 +233,9 @@ def clear_log(stage: str | None = None) -> None:
     """Remove one stage's rows from the cleaning log (all rows when stage is None).
 
     The pipeline calls this before a stage runs, so a rerun replaces the stage's rows
-    instead of counting its drops twice.
+    instead of counting its drops twice. A stage with no rows in the log leaves the file
+    untouched, and a rewrite keeps the line endings of csv.writer in log_step (CRLF), so a
+    stage that logs nothing does not change the committed log.
     """
     path = config.cleaning_log_csv()
     if not path.exists():
@@ -242,7 +244,9 @@ def clear_log(stage: str | None = None) -> None:
         path.unlink()
         return
     log = read_log()
-    log[log["stage"] != stage].to_csv(path, index=False)
+    if not (log["stage"] == stage).any():
+        return
+    log[log["stage"] != stage].to_csv(path, index=False, lineterminator="\r\n")
 
 
 # --- Report tables (reports/tables/*.csv) ---------------------------------------------
