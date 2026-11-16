@@ -1,0 +1,5 @@
+method,rule,steps,flagged,share,flagged_implied_higher,flagged_implied_lower,expected_if_normal,also_rule_O02
+z-score,|z| > 3 (mean and sd),14077236,170493,0.012111255362913572,70018,100475,38005.66633438457,29
+modified z-score,|modified z| > 3.5 (median and MAD),14077236,452856,0.03216938325108708,221651,231205,6549.548892091476,34
+Tukey fences,"outside Q1 - 1.5 IQR, Q3 + 1.5 IQR",14077236,1063108,0.07551965456855309,543528,519580,98211.29027771237,38
+rule O02,implied speed above JUMP_KMH (200 km/h),14077236,39,2.7704302179774493e-06,39,0,,39
