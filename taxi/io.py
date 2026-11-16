@@ -79,7 +79,9 @@ def raw_path(vehicle_id: int) -> Path:
     return config.RAW_DIR / f"{int(vehicle_id)}.csv"
 
 
-def vehicle_ids(stage: Literal["raw", "interim", "clean", "final"]) -> list[int]:
+def vehicle_ids(
+    stage: Literal["raw", "interim", "clean", "screened", "final"],
+) -> list[int]:
     """Vehicles available at a stage, sorted.
 
     "raw" lists the non-empty raw files; during a dev run it is limited to DEV_VEHICLES.

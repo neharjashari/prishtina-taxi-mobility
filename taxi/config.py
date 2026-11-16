@@ -116,6 +116,39 @@ BINARY_MIN_VARIANCE = 0.05
 CORR_MAX_ABS = 0.9
 PCA_VARIANCE_TARGET = 0.90
 
+# --- Outliers (Phase II) --------------------------------------------------------------
+
+# Point and step rules O01-O04. Each threshold is a physical bound, not a share of the
+# data. Proposed values, pending team agreement.
+# O01, O02: no taxi moves faster than this; the fleet's highest reported speed is 186 km/h.
+JUMP_KMH = 200
+# O01: a spike returns. The neighbours of the point are closer to each other than this
+# share of the shorter of its two steps.
+SPIKE_RETURN_SHARE = 0.25
+# O03: a reported speed that would need a larger acceleration to reach from the line
+# between its neighbours' speeds. Emergency braking of a car is about 8-10 m/s²; it
+# accelerates far slower.
+ACCEL_MAX_MS2 = 8.0
+# O04: with the ignition off and speed 0 at both ends, a step this long within this time
+# is GPS drift, not driving. 400 s covers the 6-minute timer of a parked device.
+DRIFT_MIN_M = 100
+DRIFT_MAX_DT_S = 400
+# Validation of the rules: a review sample per rule, labelled by every reviewer on a
+# shared calibration set and by one reviewer each on the rest.
+REVIEW_N_PER_RULE = 50
+# Near-misses: items just below a rule's threshold, between this factor of it and it.
+REVIEW_NEAR_N = 20
+REVIEW_NEAR_FACTOR = 0.75
+REVIEW_MAX_PER_VEHICLE = 5
+REVIEW_CALIBRATION_N = 30
+REVIEWERS = ["nehar", "ora", "ereza"]
+# A rule removes data only when at least this share of its reviewed detections are errors.
+REVIEW_MIN_PRECISION = 0.9
+# Modified z-score cutoff (Iglewicz and Hoaglin).
+ROBUST_Z_MAX = 3.5
+# False discovery rate for families of tests (Benjamini-Hochberg).
+FDR_Q = 0.05
+
 # --- Paths ----------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -125,13 +158,17 @@ EXTERNAL_DIR = ROOT / "data" / "external"
 KOSOVO_ADMIN_DIR = EXTERNAL_DIR / "kosovo_admin"
 CALENDAR_CSV = EXTERNAL_DIR / "calendar_2023.csv"
 WEATHER_CSV = EXTERNAL_DIR / "weather_prishtina.csv"
+# Labels of the outlier review, one CSV per reviewer, written by hand (committed). Like
+# the other external inputs, not switched by --dev.
+OUTLIER_LABELS_DIR = EXTERNAL_DIR / "outlier_review_labels"
 # Pins the input bytes. It describes data/raw/, so it is not switched by --dev.
 RAW_INVENTORY_CSV = ROOT / "reports" / "tables" / "raw_inventory.csv"
 
-PointsStage = Literal["interim", "clean", "final"]
+PointsStage = Literal["interim", "clean", "screened", "final"]
 POINTS_SUBDIRS: dict[str, str] = {
     "interim": "interim/points",
     "clean": "processed/points_clean",
+    "screened": "processed/points_screened",
     "final": "processed/points",
 }
 
