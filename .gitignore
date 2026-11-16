@@ -6,6 +6,7 @@ data/export/
 data/dev/
 data/external/*
 !data/external/calendar_2023.csv
+!data/external/outlier_review_labels/
 !data/external/.gitkeep
 reports/dev/
 

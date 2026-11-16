@@ -29,18 +29,28 @@ STAGES: dict[str, tuple[str, str]] = {
     "profile-before": ("taxi.quality", "run_before"),
     "clean": ("taxi.clean", "run"),
     "profile-after": ("taxi.quality", "run_after"),
+    "detect": ("taxi.outliers", "run"),
+    "screen": ("taxi.screen", "run"),
     "aggregate": ("taxi.aggregate", "run"),
     "sample": ("taxi.sample", "run"),
     "features": ("taxi.features", "run"),
     "trips": ("taxi.trips", "run"),
     "transform": ("taxi.transform", "run"),
     "reduce": ("taxi.reduce", "run"),
+    "explore-points": ("taxi.explore_points", "run"),
+    "explore-aggregates": ("taxi.explore_aggregates", "run"),
+    "explore-trips": ("taxi.explore_trips", "run"),
     "export": ("taxi.export", "run"),
 }
 
 # The last stage that writes each points dataset. Rows dropped up to that stage, as logged
 # in cleaning_log.csv, plus the rows kept must add up to the raw rows.
-POINTS_WRITERS = {"interim": "ingest", "clean": "clean", "final": "trips"}
+POINTS_WRITERS = {
+    "interim": "ingest",
+    "clean": "clean",
+    "screened": "screen",
+    "final": "trips",
+}
 
 RUN_LOG_COLUMNS = [
     "run_id",
@@ -53,7 +63,8 @@ RUN_LOG_COLUMNS = [
     "git_commit",
 ]
 
-# Tables and figures of the Phase I report. File names are fixed here so check can find them.
+# Tables and figures of the reports: T1-T12 and F1-F12 from Phase I, T13-T24 and F13-F21
+# from Phase II. File names are fixed here so check can find them.
 TABLES = [
     ("T2", "data_dictionary.csv"),
     ("T3", "quality_before.csv"),
@@ -69,6 +80,21 @@ TABLES = [
     ("T11", "feature_selection.csv"),
     ("T12", "pca_explained_variance.csv"),
     ("T12", "pca_loadings.csv"),
+    ("T13", "outlier_rules_points.csv"),
+    ("T14", "outlier_methods_points.csv"),
+    ("T15", "outlier_review_sample.csv"),
+    ("T15", "outlier_validation.csv"),
+    ("T16", "summary_points.csv"),
+    ("T17", "screen_impact.csv"),
+    ("T18", "outliers_aggregates.csv"),
+    ("T19", "summary_aggregates.csv"),
+    ("T19", "olap_cube.csv"),
+    ("T20", "group_tests.csv"),
+    ("T21", "outliers_trips.csv"),
+    ("T22", "outliers_multivariate.csv"),
+    ("T23", "summary_trips.csv"),
+    ("T24", "multivariate_summary.csv"),
+    ("T24", "od_matrix.csv"),
 ]
 FIGURES = [
     ("F1", "f01_rows_per_vehicle.png"),
@@ -83,6 +109,15 @@ FIGURES = [
     ("F10", "f10_discretization.png"),
     ("F11", "f11_feature_correlation.png"),
     ("F12", "f12_pca_scree.png"),
+    ("F13", "f13_implied_vs_reported_speed.png"),
+    ("F14", "f14_point_rule_examples.png"),
+    ("F15", "f15_speed_point_vs_time_weighted.png"),
+    ("F16", "f16_screen_before_after.png"),
+    ("F17", "f17_aggregate_anomalies.png"),
+    ("F18", "f18_vehicle_day_by_group.png"),
+    ("F19", "f19_trip_classes.png"),
+    ("F20", "f20_multivariate_outliers.png"),
+    ("F21", "f21_correlation_od_matrix.png"),
 ]
 EXPORT_FILES = [
     "points",
@@ -272,6 +307,7 @@ def planned_outputs() -> list[tuple[str, str, Path]]:
     out.append(("logs", "run_log", config.run_log_csv()))
     for name in ["trips", "vehicle_day", "cell_hour", "fleet_hour"]:
         out.append(("datasets", name, io.table_path(name)))
+    out.append(("datasets", "point_flags", io.table_path("outliers/point_flags")))
     out += [
         ("datasets", "samples", io.table_path(f"samples/{name}"))
         for name in sample_names()
@@ -311,6 +347,7 @@ def dataset_files() -> dict[str, list[Path]]:
         "fleet_hour",
         "model/trips_model",
         "model/vehicle_day_model",
+        "outliers/point_flags",
     ]:
         files[f"processed/{name}"] = [io.table_path(name)]
     files["sample/points_sample"] = [config.sample_csv()]
