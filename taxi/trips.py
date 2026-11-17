@@ -1,5 +1,7 @@
 """Stops and trips: a new level of detail, one row per trip."""
 
+import shutil
+
 import numpy as np
 import pandas as pd
 
@@ -12,6 +14,7 @@ TRIP_COLUMNS = [
     "trip_id",
     "vehicle_id",
     "rule",
+    "trip_class",
     "start_ts_local",
     "end_ts_local",
     "duration_s",
@@ -74,6 +77,13 @@ TRIPS_DICTIONARY = [
         "values": "stop_gap / di2",
         "description": "Segmentation rule that produced the trip (TRIP_RULE).",
         "source": "config.TRIP_RULE",
+    },
+    {
+        "column": "trip_class",
+        "attribute_type": "nominal",
+        "values": "stationary / ride",
+        "description": "Meter-on episode with distance below STATIONARY_MAX_M is stationary; all other trips are rides.",
+        "source": "distance_m, config.STATIONARY_MAX_M",
     },
     {
         "column": "start_ts_local",
@@ -211,6 +221,12 @@ POINT_ID_CATALOG = [
 ]
 
 TRIPS_CATALOG = [
+    {
+        "feature": "trip_class",
+        "formula": f"stationary when distance_m < {config.STATIONARY_MAX_M}; otherwise ride",
+        "attribute_type": "nominal",
+        "purpose": "separate metered waiting episodes from rides",
+    },
     {
         "feature": "duration_s",
         "formula": "end_ts - start_ts (sum of dt_s over the trip's steps)",
@@ -436,6 +452,10 @@ def trip_table(
             "vehicle_id": np.full(len(first), vehicle_id, dtype="int16"),
             "rule": pd.Categorical(
                 [rule] * len(first), categories=list(config.TRIP_RULES)
+            ),
+            "trip_class": pd.Categorical(
+                np.where(distance < config.STATIONARY_MAX_M, "stationary", "ride"),
+                categories=["stationary", "ride"],
             ),
             "start_ts_local": start_local,
             "end_ts_local": df["ts_local"].iloc[last].reset_index(drop=True),
@@ -940,6 +960,11 @@ def run(dev: bool) -> None:
     trips = trips[TRIP_COLUMNS]
 
     check_trips(trips, points_m, points_n)
+    current_path = io.table_path("trips")
+    baseline_path = config.processed_dir() / "trips_phase1.parquet"
+    if current_path.exists() and not baseline_path.exists():
+        baseline_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(current_path, baseline_path)
     io.write_table(trips, "trips")
     io.write_report_table(rule_comparison(stats), "trip_rule_comparison")
     io.write_report_table(sensitivity_table(stats), "di2_bridge_sensitivity")

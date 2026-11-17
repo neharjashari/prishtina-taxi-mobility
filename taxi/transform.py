@@ -952,13 +952,18 @@ def run(dev: bool) -> None:
         raise PipelineError(
             "No vehicle_day.parquet: the aggregate stage writes it (needed for vehicle_day_model)."
         )
-    trips = io.read_table("trips")
+    trips_all = io.read_table("trips")
     vd = io.read_table("vehicle_day")
-    endpoints, summaries = read_point_summaries(pd.Index(trips["trip_id"]))
+    endpoints, summaries = read_point_summaries(pd.Index(trips_all["trip_id"]))
+    ride_mask = trips_all["trip_class"].eq("ride")
+    trips = trips_all.loc[ride_mask].reset_index(drop=True)
+    ride_endpoints = endpoints.loc[trips_all.loc[ride_mask, "trip_id"]].reset_index(
+        drop=True
+    )
 
     models, skew_rows, scale_rows = {}, [], []
     for table, frame in [
-        ("trips_model", build_trips_model(trips, endpoints)),
+        ("trips_model", build_trips_model(trips, ride_endpoints)),
         (
             "vehicle_day_model",
             build_vehicle_day_model(vd, trips, summaries["di3_reliability"]),

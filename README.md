@@ -8,7 +8,7 @@ Team: Nehar Jashari, Ora Osmani, Erëza Ismajli.
 
 The project runs in three phases on the same code base: data preparation (Phase I),
 outlier detection and exploration (Phase II), and visualization (Phase III).
-Current phase: **I**.
+This branch builds Phase II outputs. The Phase I export under `data/export/phase-1/` is left intact; new exports go to `data/export/phase-2/`.
 
 ## Data
 
@@ -85,15 +85,15 @@ python -m taxi.pipeline verify-raw
 ## Run
 
 ```bash
-python -m taxi.pipeline run --dev                 # every stage on the 3 dev vehicles (outputs in data/dev, reports/dev)
-python -m taxi.pipeline run --stage ingest --dev  # one stage
-python -m taxi.pipeline check --dev               # row reconciliation, planned outputs, data dictionary
-python -m taxi.pipeline run                       # all 83 vehicles; takes long
-python -m taxi.pipeline check
+python -m taxi.pipeline run --dev
+python -m taxi.pipeline check --dev
+python -m taxi.pipeline run --stage explore-trips --dev
+python -m taxi.pipeline run --stage export --dev
 ```
 
-Stages, in order: `verify-raw`, `ingest`, `profile-before`, `clean`, `profile-after`,
-`aggregate`, `sample`, `features`, `trips`, `transform`, `reduce`, `export`.
+Omit `--dev` to process the full data. The Phase II export is written to `data/export/phase-2/`.
+A full run needs every registered detection and exploration module available in the checkout.
+Use `--stage NAME` to run a single stage after its inputs have been prepared.
 
 Lint and format: `ruff check . && ruff format .`
 

@@ -1,4 +1,4 @@
-"""Point-level feature creation: processed/points_clean to processed/points (the final points)."""
+"""Point-level feature creation from screened points when available, otherwise cleaned points."""
 
 import numpy as np
 import pandas as pd
@@ -384,10 +384,11 @@ def add_features(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def run(dev: bool) -> None:
-    """Add the point features to every vehicle's clean points and write the final points."""
-    ids = io.vehicle_ids("clean")
+    """Add point features to screened points when available, otherwise cleaned points."""
+    source = "screened" if io.vehicle_ids("screened") else "clean"
+    ids = io.vehicle_ids(source)
     if not ids:
-        raise PipelineError("No clean points: run the clean stage first.")
+        raise PipelineError("No point data: run clean (and screen when available) first.")
     for stale in sorted(set(io.vehicle_ids("final")) - set(ids)):
         io.points_path("final", stale).unlink()
 
@@ -395,7 +396,7 @@ def run(dev: bool) -> None:
     clean_columns = [r["column"] for r in clean_rows]
     rows_total = 0
     for v in ids:
-        df = io.read_points("clean", [v])
+        df = io.read_points(source, [v])
         rows_in = len(df)
         out = add_features(df)[clean_columns + FEATURE_COLUMNS]
         if len(out) != rows_in:
