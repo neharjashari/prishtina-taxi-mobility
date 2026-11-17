@@ -46,9 +46,8 @@ def detect(frame: pd.DataFrame, table: str) -> tuple[pd.DataFrame, dict]:
         raise PipelineError(f"Too few complete rows for {table}: {len(x)}.")
 
     rng = np.random.default_rng(config.SEED)
-    fit_n = min(len(x), config.MULTIVARIATE_FIT_N)
-    fit_idx = np.sort(rng.choice(len(x), fit_n, replace=False)) if fit_n < len(x) else np.arange(len(x))
-    fit = x[fit_idx]
+    fit_n = len(x)
+    fit = x
     valid_rows = np.flatnonzero(complete)
 
     robust = MinCovDet(random_state=config.SEED).fit(fit)
@@ -140,19 +139,20 @@ def _trip_summary(trips: pd.DataFrame, model: pd.DataFrame) -> pd.DataFrame:
         t[col] = t["trip_id"].map(center[col])
     measures = ["duration_s", "distance_m", "avg_speed_kmh", "max_speed_kmh", "straightness", "start_dist_center_m", "end_dist_center_m"]
     rows = []
-    def emit(part: pd.DataFrame, group: str, value: str, cls: str) -> None:
-        for col in measures:
+    def emit(part: pd.DataFrame, group: str, value: str, cls: str, columns: list[str]) -> None:
+        for col in columns:
             item = {"table": "trips", "variable": col, "group": group, "group_value": value, "trip_set": cls}
             item.update(stats.summarize(part[col]))
             rows.append(item)
     for cls, subset in [("ride", t[t["trip_class"].eq("ride")]), ("stationary", t[t["trip_class"].eq("stationary")])]:
-        emit(subset, "all", "all", cls)
+        columns = measures if cls == "ride" else measures[:-2]
+        emit(subset, "all", "all", cls, columns)
     rides = t[t["trip_class"].eq("ride")]
     for col, group in [("tod_bucket", "tod_bucket"), ("is_weekend", "day_type"), ("start_municipality", "start_municipality")]:
         counts = rides[col].value_counts(dropna=True)
         values = counts.index[:5] if group == "start_municipality" else counts.index
         for value in values:
-            emit(rides[rides[col].eq(value)], group, str(value), "ride")
+            emit(rides[rides[col].eq(value)], group, str(value), "ride", measures)
     return pd.DataFrame(rows)
 
 
@@ -225,9 +225,30 @@ def _multivariate_summary(trips: pd.DataFrame, trip_model: pd.DataFrame, vd_mode
             pca = PCA(n_components=min(5, len(columns), len(z) - 1), svd_solver="full").fit(z)
             for i, ratio in enumerate(pca.explained_variance_ratio_, 1):
                 rows.append({"section": "pca_after_screening", "dataset": table, "statistic": "explained_variance_ratio", "feature": f"pc{i}", "feature_b": "", "group": "all", "group_value": "all", "value": float(ratio), "n": len(z)})
-            for i, component in enumerate(pca.components_, 1):
+            components = pca.components_.copy()
+            signs = np.sign(components[np.arange(len(components)), np.abs(components).argmax(axis=1)])
+            components *= signs[:, None]
+            for i, component in enumerate(components, 1):
                 for feature, loading in zip(columns, component, strict=True):
                     rows.append({"section": "pca_after_screening", "dataset": table, "statistic": "loading", "feature": feature, "feature_b": f"pc{i}", "group": "all", "group_value": "all", "value": float(loading), "n": len(z)})
+            variance_reference_path = config.tables_dir() / "pca_explained_variance_phase1.csv"
+            if variance_reference_path.exists():
+                variance_reference = pd.read_csv(variance_reference_path)
+                variance_reference = variance_reference[variance_reference["scaling"] == "zscore"].set_index("component")
+                for i, ratio in enumerate(pca.explained_variance_ratio_, 1):
+                    name = f"pc{i}"
+                    if name in variance_reference.index:
+                        rows.append({"section": "pca_variance_change", "dataset": table, "statistic": "current_minus_phase1", "feature": name, "feature_b": "", "group": "all", "group_value": "all", "value": float(ratio - variance_reference.loc[name, "explained_variance_ratio"]), "n": len(z)})
+            reference_path = config.tables_dir() / "pca_loadings_phase1.csv"
+            if reference_path.exists():
+                reference = pd.read_csv(reference_path).set_index("feature")
+                for i, component in enumerate(components, 1):
+                    name = f"pc{i}"
+                    if name not in reference:
+                        continue
+                    for feature, loading in zip(columns, component, strict=True):
+                        if feature in reference.index:
+                            rows.append({"section": "pca_loading_change", "dataset": table, "statistic": "current_minus_phase1", "feature": feature, "feature_b": name, "group": "all", "group_value": "all", "value": float(loading - reference.loc[feature, name]), "n": len(z)})
     joined = trips[trips["trip_class"].eq("ride")].merge(trip_model, on=["trip_id", "vehicle_id"], how="inner", suffixes=("", "_model"))
     measures = [c for c in ["duration_s", "distance_m", "avg_speed_kmh", "max_speed_kmh", "straightness"] if c in joined]
     joined["day_type"] = np.where(joined["is_weekend"], "weekend", "weekday")

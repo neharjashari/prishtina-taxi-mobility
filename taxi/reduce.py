@@ -1,5 +1,7 @@
 """Feature subset selection and dimensionality reduction."""
 
+import shutil
+
 import numpy as np
 import pandas as pd
 from matplotlib.colors import LinearSegmentedColormap
@@ -423,6 +425,11 @@ def figure_scree(variance: pd.DataFrame, loadings: pd.DataFrame, k: int) -> None
 
 def run(dev: bool) -> None:
     """Feature selection (T11, F11) on both model tables; PCA (T12, F12) on vehicle_day_model."""
+    for name in ("pca_explained_variance", "pca_loadings"):
+        source = config.tables_dir() / f"{name}.csv"
+        reference = config.tables_dir() / f"{name}_phase1.csv"
+        if source.exists() and not reference.exists():
+            shutil.copy2(source, reference)
     for name in TABLES.values():
         if not io.table_path(name).exists():
             raise PipelineError(f"No {name}.parquet: run the transform stage first.")

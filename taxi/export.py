@@ -1,4 +1,4 @@
-"""The extracted datasets for GClassroom: data/export/phase-1/ (data/dev/export/phase-1 in dev)."""
+"""The extracted datasets for GClassroom: data/export/phase-2/."""
 
 import hashlib
 import shutil
@@ -15,9 +15,10 @@ CONTENTS = [
     (
         "points/",
         "processed/points",
-        "final points: one Parquet file per vehicle, clean points with features, stop_id, and trip_id",
+        "final points: one Parquet file per vehicle, screened points with features, stop_id, and trip_id",
     ),
-    ("trips.parquet", "processed/trips", "one row per trip"),
+    ("outliers/point_flags.parquet", "processed/outliers/point_flags", "point-level flags used to trace flagged trips and vehicle-days"),
+    ("trips.parquet", "processed/trips", "one row per trip, including trip_class"),
     ("trips.csv", "processed/trips", "the same trips as CSV"),
     (
         "vehicle_day.csv",
@@ -47,8 +48,15 @@ CONTENTS = [
     (
         "points_sample.csv",
         "sample/points_sample",
-        "stratified sample of the clean points (vehicle x hour), under 5 MB; lat, lon, and cell_id withheld on night-time rows with the ignition off (S01)",
+        "stratified sample of the points for the selected phase (vehicle x hour), under 5 MB; lat, lon, and cell_id withheld on night-time rows with the ignition off (S01)",
     ),
+]
+
+REPORT_TABLES = [
+    "outlier_rules_points.csv",
+    "outliers_aggregates.csv",
+    "outliers_trips.csv",
+    "outliers_multivariate.csv",
 ]
 
 SOURCES = """\
@@ -90,6 +98,8 @@ def _sources() -> dict[str, list[Path]]:
     final = sorted(config.points_dir("final").glob("*.parquet"))
     src = {
         "points/": final,
+        "outliers/point_flags.parquet": [io.table_path("outliers/point_flags")],
+        **{f"tables/{name}": [config.tables_dir() / name] for name in REPORT_TABLES},
         "trips.parquet": [io.table_path("trips")],
         "trips.csv": [io.table_path("trips")],
         "vehicle_day.csv": [io.table_path("vehicle_day")],
@@ -138,12 +148,14 @@ def check_dictionary(src: dict[str, list[Path]]) -> pd.DataFrame:
 
 def _clean_export_dir() -> Path:
     out = config.export_dir()
-    if out.parts[-2:] != ("export", "phase-1") or config.ROOT not in out.parents:
+    if out.parts[-2:] != ("export", "phase-2") or config.ROOT not in out.parents:
         raise PipelineError(f"Unexpected export directory: {out}")
     if out.exists():
         shutil.rmtree(out)
     (out / "points").mkdir(parents=True)
     (out / "model").mkdir()
+    (out / "outliers").mkdir()
+    (out / "tables").mkdir()
     return out
 
 
@@ -151,16 +163,15 @@ def build(src: dict[str, list[Path]], dictionary: pd.DataFrame) -> Path:
     out = _clean_export_dir()
     for path in src["points/"]:
         shutil.copy2(path, out / "points" / path.name)
-    for target in (
-        "trips.parquet",
-        "model/trips_model.parquet",
-        "model/vehicle_day_model.parquet",
-    ):
+    datasets = ["outliers/point_flags.parquet", "trips.parquet", "model/trips_model.parquet", "model/vehicle_day_model.parquet"]
+    for target in datasets:
         shutil.copy2(src[target][0], out / target)
     for target in ("trips.csv", "vehicle_day.csv", "cell_hour.csv", "fleet_hour.csv"):
         df = pd.read_parquet(src[target][0])
         io.count_rows(rows_in=len(df), rows_out=len(df))
         df.to_csv(out / target, index=False, encoding="utf-8")
+    for target in (f"tables/{name}" for name in REPORT_TABLES):
+        shutil.copy2(src[target][0], out / target)
     shutil.copy2(src["points_sample.csv"][0], out / "points_sample.csv")
     dictionary.to_csv(out / "data_dictionary.csv", index=False, encoding="utf-8")
     return out
@@ -195,7 +206,7 @@ def manifest(out: Path) -> pd.DataFrame:
 def readme(table: pd.DataFrame, total_bytes: int, dev: bool) -> str:
     n_vehicles = int(table["file"].str.startswith("points/").sum())
     lines = [
-        "# Prishtina Taxi Mobility: Phase I datasets",
+        "# Prishtina Taxi Mobility: Phase II datasets",
         "",
         f"Prepared GPS traces of {n_vehicles} taxis in Prishtina, June 1 to August 31, 2023, from the",
         "project's preprocessing pipeline (`python -m taxi.pipeline run`). Every column of",
@@ -223,6 +234,11 @@ def readme(table: pd.DataFrame, total_bytes: int, dev: bool) -> str:
         lines.append(
             f"| `{target}` | {what}{files} | {rows:,} | {columns} | {mb:,.1f} |"
         )
+    for name in REPORT_TABLES:
+        rel = f"tables/{name}"
+        part = table[table["file"] == rel]
+        if not part.empty:
+            lines.append(f"| `{rel}` | generated analysis table | {int(part['rows'].iloc[0]):,} | {int(part['columns'].iloc[0])} | {part['bytes'].iloc[0] / 1e6:,.1f} |")
     d = table[table["file"] == "data_dictionary.csv"]
     lines.append(
         f"| `data_dictionary.csv` | one row per column of every dataset above | "
@@ -247,8 +263,8 @@ def readme(table: pd.DataFrame, total_bytes: int, dev: bool) -> str:
             f"- Trips: rule `{config.TRIP_RULE}` (column `rule` of the trip table); "
             "a trip that crosses midnight belongs to the day it starts."
         ),
-        "- Missing values are empty in CSV and null in Parquet. `flag_*` columns mark rows kept",
-        "  for outlier checks in Phase II.",
+        "- Missing values are empty in CSV and null in Parquet. `trip_class` separates metered",
+        "  stationary episodes from rides; model trip statistics use rides.",
         "",
         "## Sources and licences",
         "",
@@ -260,7 +276,7 @@ def readme(table: pd.DataFrame, total_bytes: int, dev: bool) -> str:
 
 
 def run(dev: bool) -> None:
-    """Build data/export/phase-1/ after the dictionary check; write the manifest and README_data.md."""
+    """Build the Phase II data package after checking its dictionary."""
     src = _sources()
     dictionary = check_dictionary(src)
     out = build(src, dictionary)

@@ -1,4 +1,4 @@
-"""Point-level feature creation: processed/points_clean to processed/points (the final points)."""
+"""Point-level feature creation from screened points when available, otherwise cleaned points."""
 
 import numpy as np
 import pandas as pd
