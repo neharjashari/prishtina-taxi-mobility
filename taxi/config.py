@@ -154,6 +154,10 @@ REVIEWERS = ["nehar", "ora", "ereza"]
 REVIEW_MIN_PRECISION = 0.9
 # Modified z-score cutoff (Iglewicz and Hoaglin).
 ROBUST_Z_MAX = 3.5
+LOF_K = 20
+IFOREST_TREES = 200
+MULTIVARIATE_FIT_N = 20_000
+LOF_MAX_N = 20_000
 # False discovery rate for families of tests (Benjamini-Hochberg).
 FDR_Q = 0.05
 

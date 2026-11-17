@@ -1,5 +1,7 @@
 """Stops and trips: a new level of detail, one row per trip."""
 
+import shutil
+
 import numpy as np
 import pandas as pd
 
@@ -958,6 +960,11 @@ def run(dev: bool) -> None:
     trips = trips[TRIP_COLUMNS]
 
     check_trips(trips, points_m, points_n)
+    current_path = io.table_path("trips")
+    baseline_path = config.processed_dir() / "trips_phase1.parquet"
+    if current_path.exists() and not baseline_path.exists():
+        baseline_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(current_path, baseline_path)
     io.write_table(trips, "trips")
     io.write_report_table(rule_comparison(stats), "trip_rule_comparison")
     io.write_report_table(sensitivity_table(stats), "di2_bridge_sensitivity")
