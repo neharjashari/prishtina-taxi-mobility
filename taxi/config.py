@@ -103,6 +103,10 @@ COMPASS_LABELS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 TRIP_RULES = ("stop_gap", "di2")
 TRIP_RULE = "di2"
 DI2_BRIDGE_S = 60
+STATIONARY_MAX_M = 100
+TRIP_MAX_AVG_KMH = 85
+TRIP_LONG_DISTANCE_M = 100_000
+TRIP_LONG_DURATION_S = 3 * 60 * 60
 DI2_BRIDGE_COMPARE_S = [0, 10, 20, 30, 45, 60, 90, 120, 180, 300]
 # Di3 (passenger) is unusable for a vehicle when it is true for more than this share of
 # its observed ignition-off time: a passenger cannot sit in a switched-off taxi that long.
