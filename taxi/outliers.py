@@ -837,6 +837,44 @@ def review_plot(
     return fig
 
 
+def render_review(reviewer: str) -> Path:
+    """Draw every review plot of a reviewer: their items and the calibration items.
+
+    One PNG per item in REVIEW_PLOTS_DIR/<reviewer>/, named by item number and rule only,
+    so the file shows neither the score nor whether the item was flagged. The folder is
+    under reports/dev/, which git ignores: review plots stay on the reviewer's machine.
+    Reads the full clean points, so `clean` must have run on all vehicles on this machine.
+    """
+    if reviewer not in config.REVIEWERS:
+        raise ValueError(
+            f"reviewer must be one of {config.REVIEWERS}, got {reviewer!r}"
+        )
+    sample = io.read_report_table("outlier_review_sample")
+    mine = sample[sample["reviewer"].isin([reviewer, "all"])]
+    out = config.REVIEW_PLOTS_DIR / reviewer
+    out.mkdir(parents=True, exist_ok=True)
+    figures.apply_style()
+    for vehicle_id, items in mine.groupby("vehicle_id"):
+        points = read_vehicle(int(vehicle_id))
+        kept = without_spikes(points)[0]
+        for item in items.itertuples():
+            frame = points if item.rule_id == "O01" else kept
+            idx = int(
+                np.flatnonzero(frame["source_row"].to_numpy() == item.source_row)[0]
+            )
+            fig, (ax_track, ax_speed) = figures.subplots(10, 4.2, ncols=2)
+            draw_context(ax_track, ax_speed, frame, idx, item.rule_id)
+            fig.suptitle(
+                f"Item {item.item}: {item.rule_id} {RULE_NAMES[item.rule_id]}",
+                x=0.01,
+                ha="left",
+                fontweight="bold",
+            )
+            fig.savefig(out / f"item_{item.item:03d}_{item.rule_id}.png", dpi=110)
+            plt.close(fig)
+    return out
+
+
 def figure_examples(sample: pd.DataFrame) -> None:
     """F14: the first flagged item of each rule in the review sample, in context."""
     fig, axes = figures.subplots(16, 7, nrows=2, ncols=len(RULES))

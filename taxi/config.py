@@ -175,6 +175,9 @@ WEATHER_CSV = EXTERNAL_DIR / "weather_prishtina.csv"
 # Labels of the outlier review, one CSV per reviewer, written by hand (committed). Like
 # the other external inputs, not switched by --dev.
 OUTLIER_LABELS_DIR = EXTERNAL_DIR / "outlier_review_labels"
+# The plots reviewers label from, one folder per reviewer. Under reports/dev/, which git
+# ignores, so they never leave the reviewer's machine; not switched by --dev.
+REVIEW_PLOTS_DIR = ROOT / "reports" / "dev" / "review_plots"
 # Pins the input bytes. It describes data/raw/, so it is not switched by --dev.
 RAW_INVENTORY_CSV = ROOT / "reports" / "tables" / "raw_inventory.csv"
 
