@@ -141,6 +141,9 @@ DRIFT_MAX_DT_S = 400
 # the rule found wrong, or "flag" (count only). Proposed values, pending the validation
 # of the rules (REVIEW_MIN_PRECISION) and team agreement.
 OUTLIER_ACTIONS = {"O01": "drop", "O02": "set_na", "O03": "set_na", "O04": "set_na"}
+# The motorway speed limit in Kosovo. Points at or above it are possible (speeding), so
+# they stay; explore-points describes how many, when, and where. Not a removal threshold.
+SPEED_FAST_KMH = 130
 # Validation of the rules: a review sample per rule, labelled by every reviewer on a
 # shared calibration set and by one reviewer each on the rest.
 REVIEW_N_PER_RULE = 50
