@@ -1,7 +1,7 @@
 """Sampling methods, their evaluation against the full data (T8, F8), and the reviewer sample.
 
-Samples are drawn from processed/points_clean one vehicle at a time, with SEED, and keep
-its columns. Methods:
+Samples are drawn from processed/points_screened (the clean points without the errors the
+outlier rules remove) one vehicle at a time, with SEED, and keep its columns. Methods:
 
 - srs: simple random sample, every point equally likely, exact size round(frac * N);
 - stratified: the same fraction from every stratum (vehicle x local hour), at least one
@@ -198,12 +198,12 @@ def sample_plan() -> list[tuple[str, str, str, Callable[[io.Stage], pd.DataFrame
 
 
 def run(dev: bool) -> None:
-    """Draw every planned sample from points_clean, evaluate it (T8, F8), write the reviewer CSV."""
-    build(stage="clean", dictionary_dataset="processed/points_clean")
+    """Draw every planned sample from the screened points, evaluate it (T8, F8), write the reviewer CSV."""
+    build(stage="screened", dictionary_dataset="processed/points_screened")
 
 
 def build(stage: io.Stage, dictionary_dataset: str) -> pd.DataFrame:
-    """The sample stage on any points dataset; run() uses points_clean."""
+    """The sample stage on any points dataset; run() uses the screened points."""
     for old in config.samples_dir().glob("*.parquet"):
         old.unlink()
 
