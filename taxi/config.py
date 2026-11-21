@@ -141,6 +141,9 @@ DRIFT_MAX_DT_S = 400
 # the rule found wrong, or "flag" (count only). Proposed values, pending the validation
 # of the rules (REVIEW_MIN_PRECISION) and team agreement.
 OUTLIER_ACTIONS = {"O01": "drop", "O02": "set_na", "O03": "set_na", "O04": "set_na"}
+# The motorway speed limit in Kosovo. Points at or above it are possible (speeding), so
+# they stay; explore-points describes how many, when, and where. Not a removal threshold.
+SPEED_FAST_KMH = 130
 # Validation of the rules: a review sample per rule, labelled by every reviewer on a
 # shared calibration set and by one reviewer each on the rest.
 REVIEW_N_PER_RULE = 50
@@ -172,6 +175,9 @@ WEATHER_CSV = EXTERNAL_DIR / "weather_prishtina.csv"
 # Labels of the outlier review, one CSV per reviewer, written by hand (committed). Like
 # the other external inputs, not switched by --dev.
 OUTLIER_LABELS_DIR = EXTERNAL_DIR / "outlier_review_labels"
+# The plots reviewers label from, one folder per reviewer. Under reports/dev/, which git
+# ignores, so they never leave the reviewer's machine; not switched by --dev.
+REVIEW_PLOTS_DIR = ROOT / "reports" / "dev" / "review_plots"
 # Pins the input bytes. It describes data/raw/, so it is not switched by --dev.
 RAW_INVENTORY_CSV = ROOT / "reports" / "tables" / "raw_inventory.csv"
 

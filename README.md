@@ -8,7 +8,7 @@ Team: Nehar Jashari, Ora Osmani, Erëza Ismajli.
 
 The project runs in three phases on the same code base: data preparation (Phase I),
 outlier detection and exploration (Phase II), and visualization (Phase III).
-This branch builds Phase II outputs. The Phase I export under `data/export/phase-1/` is left intact; new exports go to `data/export/phase-2/`.
+Current phase: **II**. The code and outputs submitted for Phase I are at the tag `phase-1`.
 
 ## Data
 
@@ -85,17 +85,47 @@ python -m taxi.pipeline verify-raw
 ## Run
 
 ```bash
-python -m taxi.pipeline run --dev
-python -m taxi.pipeline check --dev
-python -m taxi.pipeline run --stage explore-trips --dev
-python -m taxi.pipeline run --stage export --dev
+python -m taxi.pipeline run --dev                 # every stage on the 3 dev vehicles (outputs in data/dev, reports/dev)
+python -m taxi.pipeline run --stage detect --dev  # one stage
+python -m taxi.pipeline check --dev               # row reconciliation, planned outputs, data dictionary
+python -m taxi.pipeline run                       # all 83 vehicles; takes several minutes
+python -m taxi.pipeline check
 ```
 
-Omit `--dev` to process the full data. The Phase II export is written to `data/export/phase-2/`.
-A full run needs every registered detection and exploration module available in the checkout.
-Use `--stage NAME` to run a single stage after its inputs have been prepared.
+Stages, in order:
+
+- Phase I, preparation: `verify-raw`, `ingest`, `profile-before`, `clean`, `profile-after`.
+- Phase II, outliers: `detect` (rules O01-O04 flag impossible positions, speeds, and parked
+  GPS drift; nothing is changed) and `screen` (removes or blanks what the validated rules
+  found, logged in `reports/tables/cleaning_log.csv`).
+- Phase I, preparation, now on the screened points: `aggregate`, `sample`, `features`,
+  `trips`, `transform`, `reduce`.
+- Phase II, exploration: `explore-points`, `explore-aggregates`, `explore-trips`.
+- `export` writes the dataset package to `data/export/phase-2/`.
+
+Self-checks of the shared functions: `python -m taxi.geo`, `python -m taxi.stats`,
+`python -m taxi.outliers`.
 
 Lint and format: `ruff check . && ruff format .`
+
+### Reviewing the outlier rules
+
+A rule may remove data only if most of what it flags are errors, so every rule is checked
+by people first. `detect` draws a review sample
+(`reports/tables/outlier_review_sample.csv`): flagged items and items just below each
+rule's threshold, mixed so a reviewer cannot tell them apart. Each reviewer, once:
+
+```python
+from taxi import outliers
+outliers.start_labels("<reviewer>")   # data/external/outlier_review_labels/<reviewer>.csv
+outliers.render_review("<reviewer>")  # one plot per item in reports/dev/review_plots/<reviewer>/
+```
+
+Fill the `label` column with `error`, `real`, or `unsure` (and an optional `note`), judging
+from the plot only. The plots show positions in metres relative to the item and times in
+seconds relative to it, with no map, and stay on the reviewer's machine (`reports/dev/`
+is not in git). The next `detect` run measures each rule's precision in
+`reports/tables/outlier_validation.csv`.
 
 ## Layout
 
@@ -104,6 +134,7 @@ Lint and format: `ruff check . && ruff format .`
 | `taxi/` | the pipeline: `config.py` (paths, thresholds, seed), `io.py`, `pipeline.py`, one module per stage |
 | `notebooks/` | one narrative notebook per part of the work |
 | `data/raw/` | the Kaggle CSVs, untouched (not in git) |
+| `data/external/` | boundaries (not in git), `calendar_2023.csv`, and the reviewers' labels in `outlier_review_labels/` |
 | `data/interim/`, `data/processed/`, `data/export/` | pipeline outputs (not in git) |
 | `data/sample/points_sample.csv` | small stratified sample for reviewers |
 | `reports/tables/`, `reports/figures/` | tables and figures used in the report |
