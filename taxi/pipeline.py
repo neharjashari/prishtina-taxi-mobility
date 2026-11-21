@@ -1,8 +1,8 @@
 """Command line for the pipeline.
 
     python -m taxi.pipeline verify-raw                  check data/raw/ against raw_inventory.csv
-    python -m taxi.pipeline run [--stage NAME] [--dev]
-    python -m taxi.pipeline check [--dev]
+    python -m taxi.pipeline run [--stage NAME] [--dev]  run every stage in order, or one stage
+    python -m taxi.pipeline check [--dev]               reconcile rows, planned outputs, dictionary
 
 Each stage is one function `(dev: bool) -> None` in its module.
 A stage whose module or function does not exist yet stops the run with a clear message.
@@ -166,7 +166,10 @@ def stage_function(name: str) -> Callable[[bool], None] | None:
 
 
 def run(stage: str | None, dev: bool) -> None:
-    """Run one stage, or every Phase II stage in order."""
+    """Run one stage, or every stage in order (Phase I and Phase II).
+
+    A full run rewrites cleaning_log.csv and run_log.csv from scratch, so both describe one run.
+    """
     config.set_dev(dev)
     run_id = io.new_run_id()
     io.set_run_id(run_id)
@@ -244,7 +247,7 @@ def _append_run_log(row: dict) -> None:
 
 
 def check(dev: bool) -> int:
-    """Verify the outputs of the Phase II pipeline."""
+    """Verify the outputs of a run. Prints every problem and returns 1 when there is any."""
     config.set_dev(dev)
     sections = {
         "Row reconciliation": _check_reconciliation(dev),
@@ -302,7 +305,7 @@ def _check_reconciliation(dev: bool) -> list[str]:
 
 
 def planned_outputs() -> list[tuple[str, str, Path]]:
-    """(kind, label, path) of every planned output at the current paths."""
+    """(kind, label, path) of every planned output, at the current (dev) paths."""
     out = [("tables", "T1", config.RAW_INVENTORY_CSV)]
     out += [("tables", tid, config.tables_dir() / name) for tid, name in TABLES]
     out += [("figures", fid, config.figures_dir() / name) for fid, name in FIGURES]
