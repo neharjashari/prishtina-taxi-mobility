@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from itertools import combinations
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import chi2, chi2_contingency, spearmanr
@@ -133,10 +132,21 @@ def _top_anomalies(frame: pd.DataFrame, table: str) -> pd.DataFrame:
 
 
 def _trip_summary(trips: pd.DataFrame, model: pd.DataFrame) -> pd.DataFrame:
-    center = model.set_index("trip_id")[["start_dist_center_m", "end_dist_center_m"]]
-    t = trips.copy()
-    for col in center:
-        t[col] = t["trip_id"].map(center[col])
+    center = model[["trip_id", "vehicle_id"]].copy()
+    center_columns = ["start_dist_center_m", "end_dist_center_m"]
+    for col in center_columns:
+        log_col = f"{col}_log"
+        if col in model:
+            center[col] = model[col].to_numpy()
+        elif log_col in model:
+            center[col] = np.expm1(model[log_col].astype("float64"))
+        else:
+            raise PipelineError(
+                f"{col} (or {log_col}) is missing from trips_model; run transform first."
+            )
+    t = trips.drop(columns=center_columns, errors="ignore").merge(
+        center, on=["trip_id", "vehicle_id"], how="left", validate="one_to_one"
+    )
     measures = ["duration_s", "distance_m", "avg_speed_kmh", "max_speed_kmh", "straightness", "start_dist_center_m", "end_dist_center_m"]
     rows = []
     def emit(part: pd.DataFrame, group: str, value: str, cls: str, columns: list[str]) -> None:
